@@ -1,14 +1,24 @@
 ################ CSC258H1F Winter 2024 Assembly Final Project ##################
 # This file contains our implementation of Tetris.
 #
-# Student 1: Name, Student Number
-# Student 2: Name, Student Number (if applicable)
+# Student 1: Andrey Kobyakov, No.1009050660
+# Student 2: Greatman Nkwachukwu Okonkwo, No. 1008817005
 ######################## Bitmap Display Configuration ########################
 # - Unit width in pixels:       TODO
 # - Unit height in pixels:      TODO
 # - Display width in pixels:    TODO
 # - Display height in pixels:   TODO
 # - Base Address for Display:   0x10008000 ($gp)
+
+#TODO:
+# 1. Add music (Korobeinki) (Hard)
+# 2. Add score, based on +100, +200, +400, +800 for each line clear of 1, 2, 3, 4 rows (Hard)
+# 3. Full set of 7 tetrominoes, as below (Hard)
+# 3a. Tetrominoes in different colours (Easy)
+# 4. Box showing next tetromino (Easy)
+# 5. Gravity feature, with each second moving tetromino down by 1 row (Easy)
+# 6. Gravity speed increase feature, increase speed by 1% per tetromino and 3% per clear (Easy)
+# 7. Quit and pause screens using Q and P, respectively (Easy)
 ##############################################################################
 
     .data
@@ -68,8 +78,7 @@ main:
     addi $t2, $t2, -1
     bnez $t2, outer_wall_loop      # Branch back to loop if $t2 != 0
     
-    sub $t0, $t0, 108
-    li $t1, 0x79c314
+    sub $t0, $t0, 108 
     li $t2, 37
     sw $t1, 0($t0)
     
@@ -118,8 +127,7 @@ main:
     # Decrement the outer loop counter
     addi $t5, $t5, -1
     bnez $t5, outer_loop2 # Branch back to outer loop if $t5 != 0
-
-    li $t1, 0x70369d 
+ 
     lw $t0, ADDR_DSPL 
     add $t0, $t0, 1812
     li $t5, 7              # Set loop counter for outer_loop2
@@ -155,40 +163,6 @@ main:
     
     
     
-    # j outer_loop
-
-   
-    # augment by 96 between them
-    # add $t0, $t0, 96 
-    
-    # //second stage
-    # add $t0, $t0, 624
-    # li $t2, 4
-    # new_loop2: 
-    # sw $t1, 0($t0) 
-    # sw $t1, 4($t0) 
-    # sw $t1, 8($t0) 
-    # sw $t1, 12($t0) 
-    # # Increment $t0 by 256 to move to the next block
-    # add $t0, $t0, 32
-    # # Decrement loop counter
-    # addi $t2, $t2, -1
-    # bnez $t2, new_loop2      # Branch back to loop if $t2 != 0 
-
-    
-    #Checkerboard pattern - 4x4 black and grey
-    #For each 4 pixels, 
-    #Paint COLOUR
-    #At 4 pixels, swap; continue 16 times
-    #Swap grey and black, repeat; repeat whole process 16 times
-    
-    #For Pixel 0,
-    #For each pixel + 128, paint grey
-    
-    #For pixel 0,
-    #Loop 127 times to the last line
-    #For each pixel until 128, paint grey
-
 
 game_loop:
 	# 1a. Check if key has been pressed
