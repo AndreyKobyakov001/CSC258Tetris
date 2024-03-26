@@ -22,16 +22,6 @@ ADDR_DSPL:
 ADDR_KBRD:
     .word 0xffff0000
 
-#Colours:
-#Red for Squiggle1
-#Orange for LeftL
-#Yellow for Square
-#Green for Squiggle2
-#Cyan for Line
-#Blue for RightL
-#Purple for T
-
-#Code to generate each tetromino as it spawns. 
 
 ##############################################################################
 # Mutable Data
@@ -41,12 +31,77 @@ ADDR_KBRD:
 # Code
 ##############################################################################
 	.text
+	#Colours:
+	# red: .word 0xe81416      #Squiggle1
+	# org: .word 0xffa500      #LeftL
+	# ylw: .word 0xfaeb36      #Square
+	# grn: .word 0x79c314      #Squiggle2
+	# cyn: .word 0x487de7      #Line
+	# blu: .word 0x0339f8      #RightL
+	# ppl: .word 0x70369d      #T 
+
+#Add code to generate each tetromino as it spawns. 
 	.globl main
 
 	# Run the Tetris game. 
 	
 main:
+    lw $t0, ADDR_DSPL
+    li $t1, 0xe81416
+    
+    add $t0, $t0, 768
+    sw $t1 0($t0)
+    sw $t1 148($t0) 
+    #144 pixels between them; 36 "blocks"
+    #paint(t0), paint(144(t0))
+    #t0 add 256; continue 64 times
     # Initialize the game
+    
+    li $t2, 61
+    outer_wall_loop:
+    # Paint pixels at $t0 and $t0 + 144
+    sw $t1, 0($t0)      # Paint at $t0
+    sw $t1, 148($t0)    # Paint at $t0 + 144
+    # Increment $t0 by 256 to move to the next block
+    addi $t0, $t0, 256
+    # Decrement loop counter
+    addi $t2, $t2, -1
+    bnez $t2, outer_wall_loop      # Branch back to loop if $t2 != 0
+    
+    sub $t0, $t0, 108
+    li $t1, 0x79c314
+    li $t2, 37
+    sw $t1, 0($t0)
+    
+    bottom_wall_loop: 
+    sw $t1, 0($t0)    # Paint at $t0 + 144
+    # Increment $t0 by 256 to move to the next block
+    sub $t0, $t0, 4
+    # Decrement loop counter
+    addi $t2, $t2, -1
+    bnez $t2, bottom_wall_loop      # Branch back to loop if $t2 != 0
+    
+    li $t1, 0x0339f8 
+    lw $t0, ADDR_DSPL
+    addi $t0, $t0, 772
+    sw $t1, 0($t0)
+    #repeat 16 times: 
+    #paint offset, 0, 4, 8, 12 blue, then skip 16, and repeat. when equal to 144, skip 112, and paint again, 3 times like this. 
+    
+    li $t2, 5
+    new_loop: 
+    sw $t1, 0($t0) 
+    sw $t1, 4($t0) 
+    sw $t1, 8($t0) 
+    sw $t1, 12($t0) 
+    # Increment $t0 by 256 to move to the next block
+    add $t0, $t0, 32
+    # Decrement loop counter
+    addi $t2, $t2, -1
+    bnez $t2, new_loop      # Branch back to loop if $t2 != 0
+    
+    li $t3, 126
+
     
     #Checkerboard pattern - 4x4 black and grey
     #For each 4 pixels, 
@@ -60,6 +115,7 @@ main:
     #For pixel 0,
     #Loop 127 times to the last line
     #For each pixel until 128, paint grey
+
 
 game_loop:
 	# 1a. Check if key has been pressed
