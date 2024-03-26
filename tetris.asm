@@ -88,19 +88,92 @@ main:
     #repeat 16 times: 
     #paint offset, 0, 4, 8, 12 blue, then skip 16, and repeat. when equal to 144, skip 112, and paint again, 3 times like this. 
     
-    li $t2, 5
-    new_loop: 
-    sw $t1, 0($t0) 
-    sw $t1, 4($t0) 
-    sw $t1, 8($t0) 
-    sw $t1, 12($t0) 
-    # Increment $t0 by 256 to move to the next block
-    add $t0, $t0, 32
-    # Decrement loop counter
-    addi $t2, $t2, -1
-    bnez $t2, new_loop      # Branch back to loop if $t2 != 0
+    li $t5, 8              # Set loop counter for outer_loop2
+    outer_loop2:
+    li $t4, 4           # Reset loop counter for outer loop
+    li $t6, 1024        # Set increment value for $t0 between iterations
     
-    li $t3, 126
+    outer_loop:
+        li $t2, 5        # Set loop counter to 5 for the inner loop
+        
+        new_loop: 
+            sw $t1, 0($t0) 
+            sw $t1, 4($t0) 
+            sw $t1, 8($t0) 
+            sw $t1, 12($t0) 
+            add $t0, $t0, 32   # Increment $t0 by 32
+            addi $t2, $t2, -1  # Decrement loop counter
+            bnez $t2, new_loop # Branch back to loop if $t2 != 0
+        
+        # Increment $t0 by 96 between sub-loops
+        add $t0, $t0, 96
+        
+        # Decrement the outer loop counter
+        addi $t4, $t4, -1
+        bnez $t4, outer_loop # Branch back to outer loop if $t4 != 0
+    
+    # Augment $t0 by 1024 between iterations
+    add $t0, $t0, $t6
+
+    # Decrement the outer loop counter
+    addi $t5, $t5, -1
+    bnez $t5, outer_loop2 # Branch back to outer loop if $t5 != 0
+
+    li $t1, 0x70369d 
+    lw $t0, ADDR_DSPL 
+    add $t0, $t0, 1812
+    li $t5, 7              # Set loop counter for outer_loop2
+    outer_loop21:
+    li $t4, 4           # Reset loop counter for outer loop
+    li $t6, 1024        # Set increment value for $t0 between iterations
+    
+    outer_loop1:
+        li $t2, 4        # Set loop counter to 5 for the inner loop
+        
+        new_loop1: 
+            sw $t1, 0($t0) 
+            sw $t1, 4($t0) 
+            sw $t1, 8($t0) 
+            sw $t1, 12($t0) 
+            add $t0, $t0, 32   # Increment $t0 by 32
+            addi $t2, $t2, -1  # Decrement loop counter
+            bnez $t2, new_loop1 # Branch back to loop if $t2 != 0
+        
+        # Increment $t0 by 96 between sub-loops
+        add $t0, $t0, 128
+        
+        # Decrement the outer loop counter
+        addi $t4, $t4, -1
+        bnez $t4, outer_loop1 # Branch back to outer loop if $t4 != 0
+    
+    # Augment $t0 by 1024 between iterations
+    add $t0, $t0, $t6
+
+    # Decrement the outer loop counter
+    addi $t5, $t5, -1
+    bnez $t5, outer_loop21 # Branch back to outer loop if $t5 != 0
+    
+    
+    
+    # j outer_loop
+
+   
+    # augment by 96 between them
+    # add $t0, $t0, 96 
+    
+    # //second stage
+    # add $t0, $t0, 624
+    # li $t2, 4
+    # new_loop2: 
+    # sw $t1, 0($t0) 
+    # sw $t1, 4($t0) 
+    # sw $t1, 8($t0) 
+    # sw $t1, 12($t0) 
+    # # Increment $t0 by 256 to move to the next block
+    # add $t0, $t0, 32
+    # # Decrement loop counter
+    # addi $t2, $t2, -1
+    # bnez $t2, new_loop2      # Branch back to loop if $t2 != 0 
 
     
     #Checkerboard pattern - 4x4 black and grey
