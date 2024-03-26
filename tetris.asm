@@ -18,7 +18,7 @@
 # 4. Box showing next tetromino (Easy)
 # 5. Gravity feature, with each second moving tetromino down by 1 row (Easy)
 # 6. Gravity speed increase feature, increase speed by 1% per tetromino and 3% per clear (Easy)
-# 7. Quit and pause screens using Q and P, respectively (Easy)
+# 7. Pause screen using P (Easy)
 ##############################################################################
 
     .data
@@ -173,4 +173,44 @@ game_loop:
 	# 4. Sleep
 
     #5. Go back to 1
+    li 		$v0, 32
+	li 		$a0, 1
+	syscall
+
+    lw $t0, ADDR_KBRD               # $t0 = base address for keyboard
+    lw $t8, 0($t0)                  # Load first word from keyboard
+    beq $t8, 1, keyboard_input      # If first word 1, key is pressed
     b game_loop
+    
+keyboard_input:                     # A key is pressed
+    lw $a0, 4($t0)                  # Load second word from keyboard
+    beq $a0, 0x71, quit     # Check if the key q was pressed
+
+    li $v0, 1                       # ask system to print $a0
+    syscall
+
+    b main
+    
+quit:
+    lw $t0, ADDR_DSPL
+    li $t1, 0xe81418
+    add $t0, $t0, 916
+    sw $t1 0($t0)
+    # sw $t1 148($t0) 
+    
+    li $t4, 61
+    outer_end:
+        li $t2, 38
+        end_loop: 
+        sw $t1, 0($t0)    # Paint at $t0 + 144
+        # Increment $t0 by 256 to move to the next block
+        sub $t0, $t0, 4
+        # Decrement loop counter
+        addi $t2, $t2, -1
+        bnez $t2, end_loop      # Branch back to loop if $t2 != 0
+    addi $t4, $t4, -1
+    addi $t0, $t0 408
+    bnez $t4, outer_end
+    
+	li $v0, 10                      # Quit gracefully
+	syscall
