@@ -11,6 +11,10 @@
 # - Base Address for Display:   0x10008000 ($gp)
 
 #TODO:
+#QOL
+# 1. Refactor initialization code into individual blocks using jal and jr $ra for easier drawing 
+
+#Functions
 # 1. Add music (Korobeinki) (Hard)
 # 2. Add score, based on +100, +200, +400, +800 for each line clear of 1, 2, 3, 4 rows (Hard)
 # 3. Full set of 7 tetrominoes, as below (Hard)
@@ -36,6 +40,9 @@ ADDR_KBRD:
 ##############################################################################
 # Mutable Data
 ##############################################################################
+background_grid_copy:    .space  4096       # allocate space to copy over entire bitmap display
+current_piece_x:    .word   6               # x coordinate for current piece
+current_piece_y:    .word   1               # y coordinate for current piece\
 
 ##############################################################################
 # Code
@@ -55,7 +62,7 @@ ADDR_KBRD:
 
 	# Run the Tetris game. 
 	
-main:
+
     lw $t0, ADDR_DSPL
     li $t1, 0xe81416
     
@@ -161,7 +168,22 @@ main:
     addi $t5, $t5, -1
     bnez $t5, outer_loop21 # Branch back to outer loop if $t5 != 0
     
+
+
+main:
+    lw $t0, ADDR_DSPL
+    li $t1, 0x00ff00
+    addi $t0, $t0, 788
+    #Starting pixel of gameboard: 772
+    #140 pixels wide
+    #15104 pixels long
+    #Start pixel of first row: 772
+    #each block 16 pixels long
+    #Start pixel of final row: 15108
+    li $t2, 4
+    # sw $t1 0($t0)
     
+    jal draw_square
     
 
 game_loop:
@@ -190,6 +212,16 @@ keyboard_input:                     # A key is pressed
     syscall
 
     b main
+ 
+ draw_square:
+    sw $t1, 0($t0) 
+    sw $t1, 4($t0) 
+    sw $t1, 8($t0) 
+    sw $t1, 12($t0) 
+    add $t0, $t0, 256   # Increment $t0 by 32
+    addi $t2, $t2, -1  # Decrement loop counter
+    bnez $t2, draw_square # Branch back to loop if $t2 != 0
+    jr $ra 
     
 quit:
     lw $t0, ADDR_DSPL
