@@ -4,10 +4,10 @@
 # Student 1: Andrey Kobyakov, No.1009050660
 # Student 2: Greatman Nkwachukwu Okonkwo, No. 1008817005
 ######################## Bitmap Display Configuration ########################
-# - Unit width in pixels:       TODO
-# - Unit height in pixels:      TODO
-# - Display width in pixels:    TODO
-# - Display height in pixels:   TODO
+# - Unit width in pixels:       1
+# - Unit height in pixels:      1
+# - Display width in pixels:    64
+# - Display height in pixels:   64
 # - Base Address for Display:   0x10008000 ($gp)
 
 #TODO:
@@ -64,16 +64,17 @@ current_piece_y:    .word   1               # y coordinate for current piece\
 	
 
     lw $t0, ADDR_DSPL
-    li $t1, 0xffffff
+    li $t1, 0xff0000
     
-    add $t0, $t0, 768
+    
     sw $t1 0($t0)
-    sw $t1 148($t0) 
+    sw $t1 16380($t0) 
+    add $t0, $t0, 768
     #144 pixels between them; 36 "blocks"
     #paint(t0), paint(144(t0))
     #t0 add 256; continue 64 times
     # Initialize the game
-    
+    li $t1, 0xffffff
     li $t2, 61
     outer_wall_loop:
     # Paint pixels at $t0 and $t0 + 144
@@ -180,6 +181,7 @@ main:
     #each block 16 pixels long
     #each row (newline) is 1024 pixels
     #Start pixel of final row: 15108
+    #Final pixel: 16380 for 4096 total under a 64x64 display
     
 random:
     li $v0, 42
@@ -219,7 +221,16 @@ game_loop:
     
 keyboard_input:                     # A key is pressed
     lw $a0, 4($t0)                  # Load second word from keyboard
-    beq $a0, 0x71, quit     # Check if the key q was pressed
+    beq $a0, 0x9, quit     # Check if the key q was pressed
+    #keybindings: https://www.rapidtables.com/code/text/ascii-table.html
+    #Important one:
+    # W 77 (rotate)
+    # A 61 (left shift 16)
+    # S 73 (down shift 1024)
+    # D 64 (right shift 16)
+    # [SPACE] 20 (for drop)
+    # P 70 (for pause)
+    # H 68 (for hold)
 
     li $v0, 1                       # ask system to print $a0
     syscall
