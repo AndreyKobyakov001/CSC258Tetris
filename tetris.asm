@@ -173,17 +173,36 @@ current_piece_y:    .word   1               # y coordinate for current piece\
 main:
     lw $t0, ADDR_DSPL
     li $t1, 0x00ff00
-    addi $t0, $t0, 788
     #Starting pixel of gameboard: 772
     #140 pixels wide
     #15104 pixels long
     #Start pixel of first row: 772
+    #Centre pixel: 820
     #each block 16 pixels long
     #Start pixel of final row: 15108
-    li $t2, 4
-    # sw $t1 0($t0)
-    
+    #Make square function takes -1024 to be reset fully.
+    addi $t0, $t0, 820
+    li $t2, 4 
     jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    
+    #Pixel jumps for tetrominoes
+    # Square        16 1008 16      0xfaeb36
+    # Line          16 16 16        0x487de7
+    # T             16 16 1008      0x70369d
+    # Squiggle L    1008 16 1008    0xe81416
+    # Squiggle R    1024 16 1024    0x79c314
+    # L Right       16 1008 1024    0x0339f8
+    # L Left        16 1024 1024    0xffa500
+    
     
 
 game_loop:
@@ -221,6 +240,7 @@ keyboard_input:                     # A key is pressed
     add $t0, $t0, 256   # Increment $t0 by 32
     addi $t2, $t2, -1  # Decrement loop counter
     bnez $t2, draw_square # Branch back to loop if $t2 != 0
+    add $t0, $t0, -1024   # Increment $t0 by 32
     jr $ra 
     
 quit:
