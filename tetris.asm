@@ -97,7 +97,7 @@ current_piece_y:    .word   1               # y coordinate for current piece\
     addi $t2, $t2, -1
     bnez $t2, bottom_wall_loop      # Branch back to loop if $t2 != 0
     
-    li $t1, 0x0339f8 
+    li $t1, 0x222222 
     lw $t0, ADDR_DSPL
     addi $t0, $t0, 772
     sw $t1, 0($t0)
@@ -171,8 +171,7 @@ current_piece_y:    .word   1               # y coordinate for current piece\
 
 
 main:
-    lw $t0, ADDR_DSPL
-    li $t1, 0x00ff00
+    
     #Starting pixel of gameboard: 772
     #140 pixels wide
     #15104 pixels long
@@ -180,29 +179,17 @@ main:
     #Centre pixel: 820
     #each block 16 pixels long
     #Start pixel of final row: 15108
-    #Make square function takes -1024 to be reset fully.
-    addi $t0, $t0, 820
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1008
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1024
-    li $t2, 4 
-    jal draw_square
+    
     
     #Pixel jumps for tetrominoes
-    # Square        16 1008 16      0xfaeb36
-    # Line          16 16 16        0x487de7
-    # T             16 16 1008      0x70369d
-    # Squiggle L    1008 16 1008    0xe81416
-    # Squiggle R    1024 16 1024    0x79c314
-    # L Right       16 1008 1024    0x0339f8
-    # L Left        16 1024 1024    0xffa500
-    
+    # square        16 1008 16      0xfaeb36
+    # line          16 16 16        0x487de7
+    # t_block             16 16 1008      0x70369d
+    # squiggle_1    1008 16 1008    0xe81416
+    # squiggle_2    1024 16 1024    0x79c314
+    # l_right       16 1008 1024    0x0339f8
+    # l_left        16 1024 1024    0xffa500
+    jal line
     
 
 game_loop:
@@ -231,6 +218,119 @@ keyboard_input:                     # A key is pressed
     syscall
 
     b main
+ 
+ square:
+    lw $t0, ADDR_DSPL
+    li $t1, 0xfaeb36
+    addi $t0, $t0, 820
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    jr $ra 
+ line:
+    lw $t0, ADDR_DSPL
+    li $t1, 0x00ffff
+    addi $t0, $t0, 820
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    jr $ra 
+ t_block:
+    lw $t0, ADDR_DSPL
+    li $t1, 0x70369d
+    addi $t0, $t0, 820
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    jr $ra 
+ squiggle_1:
+    lw $t0, ADDR_DSPL
+    li $t1, 0xe81416
+    addi $t0, $t0, 820
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    jr $ra 
+ squiggle_2:
+    lw $t0, ADDR_DSPL
+    li $t1, 0x79c314
+    addi $t0, $t0, 820
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    jr $ra 
+ l_right:
+    lw $t0, ADDR_DSPL
+    li $t1, 0x0339f8
+    addi $t0, $t0, 820
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    jr $ra 
+ l_left:
+    lw $t0, ADDR_DSPL
+    li $t1, 0xffa500
+    addi $t0, $t0, 820
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    jr $ra 
  
  draw_square:
     sw $t1, 0($t0) 
