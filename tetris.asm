@@ -17,8 +17,8 @@
 #Functions
 # 1. Add music (Korobeinki) (Hard)
 # 2. Add score, based on +100, +200, +400, +800 for each line clear of 1, 2, 3, 4 rows (Hard)
-# 3. Full set of 7 tetrominoes, as below (Hard)
-# 3a. Tetrominoes in different colours (Easy)
+#X 3. Full set of 7 tetrominoes, as below (Hard)
+#X 3a. Tetrominoes in different colours (Easy)
 # 4. Box showing next tetromino (Easy)
 # 5. Gravity feature, with each second moving tetromino down by 1 row (Easy)
 # 6. Gravity speed increase feature, increase speed by 1% per tetromino and 3% per clear (Easy)
@@ -64,7 +64,7 @@ current_piece_y:    .word   1               # y coordinate for current piece\
 	
 
     lw $t0, ADDR_DSPL
-    li $t1, 0xe81416
+    li $t1, 0xffffff
     
     add $t0, $t0, 768
     sw $t1 0($t0)
@@ -178,21 +178,18 @@ main:
     #Start pixel of first row: 772
     #Centre pixel: 820
     #each block 16 pixels long
+    #each row (newline) is 1024 pixels
     #Start pixel of final row: 15108
     
-    
-    #Pixel jumps for tetrominoes
-    # square        16 1008 16      0xfaeb36
-    # line          16 16 16        0x487de7
-    # t_block             16 16 1008      0x70369d
-    # squiggle_1    1008 16 1008    0xe81416
-    # squiggle_2    1024 16 1024    0x79c314
-    # l_right       16 1008 1024    0x0339f8
-    # l_left        16 1024 1024    0xffa500
+random:
     li $v0, 42
     li $a0, 0
     li $a1, 7
     syscall
+    lw $t0, ADDR_DSPL
+    # addi $t0, $t0, 16
+    #for each s press, add 1024 to $t0
+    #for each a/s press, -/+ 16 to $t0, respectively
     beq $a0, 1, square
     beq $a0, 2, line
     beq $a0, 3, t_block
@@ -229,8 +226,7 @@ keyboard_input:                     # A key is pressed
 
     b main
  
- square:
-    lw $t0, ADDR_DSPL
+ square: 
     li $t1, 0xfaeb36
     addi $t0, $t0, 820
     li $t2, 4 
@@ -244,9 +240,8 @@ keyboard_input:                     # A key is pressed
     addi $t0, $t0, 16
     li $t2, 4 
     jal draw_square
-    jr $ra 
- line:
-    lw $t0, ADDR_DSPL
+    j game_loop
+ line: 
     li $t1, 0x00ffff
     addi $t0, $t0, 820
     li $t2, 4 
@@ -260,9 +255,8 @@ keyboard_input:                     # A key is pressed
     addi $t0, $t0, 16
     li $t2, 4 
     jal draw_square
-    jr $ra 
- t_block:
-    lw $t0, ADDR_DSPL
+    j game_loop
+ t_block: 
     li $t1, 0x70369d
     addi $t0, $t0, 820
     li $t2, 4 
@@ -276,9 +270,8 @@ keyboard_input:                     # A key is pressed
     addi $t0, $t0, 1008
     li $t2, 4 
     jal draw_square
-    jr $ra 
- squiggle_1:
-    lw $t0, ADDR_DSPL
+    j game_loop
+ squiggle_1: 
     li $t1, 0xe81416
     addi $t0, $t0, 820
     li $t2, 4 
@@ -292,9 +285,8 @@ keyboard_input:                     # A key is pressed
     addi $t0, $t0, 1008
     li $t2, 4 
     jal draw_square
-    jr $ra 
- squiggle_2:
-    lw $t0, ADDR_DSPL
+    j game_loop
+ squiggle_2: 
     li $t1, 0x79c314
     addi $t0, $t0, 820
     li $t2, 4 
@@ -308,9 +300,8 @@ keyboard_input:                     # A key is pressed
     addi $t0, $t0, 1024
     li $t2, 4 
     jal draw_square
-    jr $ra 
- l_right:
-    lw $t0, ADDR_DSPL
+    j game_loop
+ l_right: 
     li $t1, 0x0339f8
     addi $t0, $t0, 820
     li $t2, 4 
@@ -324,9 +315,8 @@ keyboard_input:                     # A key is pressed
     addi $t0, $t0, 1024
     li $t2, 4 
     jal draw_square
-    jr $ra 
- l_left:
-    lw $t0, ADDR_DSPL
+    j game_loop
+ l_left: 
     li $t1, 0xffa500
     addi $t0, $t0, 820
     li $t2, 4 
@@ -340,7 +330,7 @@ keyboard_input:                     # A key is pressed
     addi $t0, $t0, 1024
     li $t2, 4 
     jal draw_square
-    jr $ra 
+    j game_loop
  
  draw_square:
     sw $t1, 0($t0) 
