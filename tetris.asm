@@ -189,7 +189,17 @@ main:
     # squiggle_2    1024 16 1024    0x79c314
     # l_right       16 1008 1024    0x0339f8
     # l_left        16 1024 1024    0xffa500
-    jal line
+    li $v0, 42
+    li $a0, 0
+    li $a1, 7
+    syscall
+    beq $a0, 1, square
+    beq $a0, 2, line
+    beq $a0, 3, t_block
+    beq $a0, 4, squiggle_1
+    beq $a0, 5, squiggle_2
+    beq $a0, 6, l_right
+    beq $a0, 7, l_left
     
 
 game_loop:
