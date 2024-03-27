@@ -40,9 +40,10 @@ ADDR_KBRD:
 ##############################################################################
 # Mutable Data
 ##############################################################################
-background_grid_copy:    .space  4096       # allocate space to copy over entire bitmap display
+background_grid_copy:    .space  16384       # allocate space to copy over entire bitmap display
+# background_grid_copy:    .space  4096       # smaller bit map display for number of pixels from 64x64
 current_piece_x:    .word   6               # x coordinate for current piece
-current_piece_y:    .word   1               # y coordinate for current piece\
+current_piece_y:    .word   6               # y coordinate for current piece\
 
 ##############################################################################
 # Code
@@ -169,6 +170,7 @@ current_piece_y:    .word   1               # y coordinate for current piece\
     addi $t5, $t5, -1
     bnez $t5, outer_loop21 # Branch back to outer loop if $t5 != 0
     
+    
 
 
 main:
@@ -205,10 +207,18 @@ game_loop:
 	# 1a. Check if key has been pressed
     # 1b. Check which key has been pressed
     # 2a. Check for collisions
-	# 2b. Update locations (paddle, ball)
-	# 3. Draw the screen
+	# 2b. Update locations (paddle, ball) - go back to the random selector
+	# 3. Draw the screen - based on previous value of $a0 as long as a collision doesn't happen
 	# 4. Sleep
-
+#Method for animation
+# Save screen as it is as OLD
+# (1) Spawn new piece at top, selected by random
+# (2)Wait 1 TIME
+# Redraw OLD
+# Immediately render the piece but lower by 1024 pixels as written
+# Check for collisions: if piece cannot go down further and the next row/+1024 is not black or grey, and borders +/- 16 are also thus, (move down, left, right checks), save board, go to random selector (1)
+# Repeat: if the piece can continue moving, go back to (2) and keep moving down
+# Using the 2 data bits of start_x and start_y to keep track of the current moving piece, and redrawing based on that instead of any register
     #5. Go back to 1
     li 		$v0, 32
 	li 		$a0, 1
@@ -221,7 +231,7 @@ game_loop:
     
 keyboard_input:                     # A key is pressed
     lw $a0, 4($t0)                  # Load second word from keyboard
-    beq $a0, 0x9, quit     # Check if the key q was pressed
+    beq $a0, 0x71, quit     # Check if the key q was pressed
     #keybindings: https://www.rapidtables.com/code/text/ascii-table.html
     #Important one:
     # W 77 (rotate)
@@ -354,9 +364,7 @@ keyboard_input:                     # A key is pressed
     add $t0, $t0, -1024   # Increment $t0 by 32
     jr $ra 
     
-quit:
-    lw $t0, ADDR_DSPL
-    li $t1, 0xe81418
+fill: 
     add $t0, $t0, 916
     sw $t1 0($t0)
     # sw $t1 148($t0) 
@@ -374,6 +382,26 @@ quit:
     addi $t4, $t4, -1
     addi $t0, $t0 408
     bnez $t4, outer_end
+    jr $ra
+
+#Vague idea
+# push_to_stack:
+    # addi $sp, $sp, #VALUE
+    # sw #value, 0($sp)
+    # #ANIMATE/movement
+    # #lw $value, 0($sp)
+    # addi $sp, $sp, -value
+    
+#Score Card
+# jump here after every move is calculated
+# input of the number of lines cleared calculated at calling function
+# 4 7-segment display rectangles displaying from 0000 to 9999 (if the stack-held value exceeds 9999, end screen)
+# draw the respective number for the score in the appropriate box using modulo operations (ABCD//1000 = A, print A and so on for all 4 vals)
+
+quit:
+    lw $t0, ADDR_DSPL
+    li $t1, 0xe81418
+    jal fill
     
 	li $v0, 10                      # Quit gracefully
 	syscall
