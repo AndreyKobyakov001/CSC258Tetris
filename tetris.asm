@@ -46,7 +46,6 @@ ADDR_KBRD:
 # Mutable Data
 ##############################################################################
 background_grid_copy:    .space  16384       # allocate space to copy over entire bitmap display
-# background_grid_copy:    .space  4096       # smaller bit map display for number of pixels from 64x64
 current_piece_x:    .word   6               # x coordinate for current piece
 current_piece_y:    .word   6               # y coordinate for current piece\
 
@@ -175,8 +174,23 @@ current_piece_y:    .word   6               # y coordinate for current piece\
     addi $t5, $t5, -1
     bnez $t5, outer_loop21 # Branch back to outer loop if $t5 != 0
     
-    
-
+score_board:
+    #Initializes empty scoreboard aligned at pixels 1452, 1472, 1492, 1512 - 4*8 displays to be turned into 7-segment score indicators from 0000 to 9999
+    li $t1, 0xffffff
+    lw $t0, ADDR_DSPL
+    addi $t0, $t0, 1452
+    li $t4, 2
+    new_loop3:        
+        li $t3, 4        # Set loop counter to 5 for the inner loop
+        new_loop2: 
+            li $t2, 4 
+            jal draw_square
+            addi $t3, $t3, -1  # Decrement loop counter
+            addi $t0, $t0, 20
+            bnez $t3, new_loop2 # Branch back to loop if $t2 != 0
+            addi $t4, $t4, -1  # Decrement loop counter
+        addi $t0, $t0, 944
+        bnez $t4, new_loop3 # Branch back to loop if $t2 != 0
 
 main:
     
@@ -191,6 +205,7 @@ main:
     #Final pixel: 16380 for 4096 total under a 64x64 display
     
 random:
+    # jal copy_loop
     li $v0, 42
     li $a0, 0
     li $a1, 7
@@ -206,6 +221,7 @@ random:
     beq $a0, 5, squiggle_2
     beq $a0, 6, l_right
     beq $a0, 7, l_left
+    # jal render_loop
     
 
 game_loop:
@@ -255,28 +271,28 @@ keyboard_input:                     # A key is pressed
  
 #UNDER CONSTRUCTION - SAVE LOOP
  
-la $s0, ADDR_DSPL
-la $s1, background_grid_copy
-li $t0, 0
-copy_loop:
-    lb $t1, ($s0)        # Load byte from current grid
-    sb $t1, ($s1)        # Store byte to background grid copy
-    addi $s0, $s0, 1     # Increment current grid pointer
-    addi $s1, $s1, 1     # Increment background grid copy pointer
-    addi $t0, $t0, 1     # Increment loop counter
-    bne $t0, 16384, copy_loop  # Repeat until entire grid is copied
-    jr $ra
+# lw $s0, ADDR_DSPL
+# lw $s1, background_grid_copy
+# li $t0, 0
+# copy_loop:
+    # lw $t1, ($s0)        # Load byte from current grid
+    # sw $t1, ($s1)        # Store byte to background grid copy
+    # addi $s0, $s0, 1     # Increment current grid pointer
+    # addi $s1, $s1, 1     # Increment background grid copy pointer
+    # addi $t0, $t0, 1     # Increment loop counter
+    # bne $t0, 16384, copy_loop  # Repeat until entire grid is copied
+    # jr $ra
     
-la $s0, ADDR_DSPL
-li $t0, 0
-render_loop:
-    lb $t1, ($s0)        # Load byte from current grid
-    # Render pixel/block based on the value of $t1
-    # (This step depends on how you render each pixel/block)
-    addi $s0, $s0, 1     # Increment current grid pointer
-    addi $t0, $t0, 1     # Increment loop counter
-    bne $t0, 16384, render_loop  # Repeat until entire grid is rendered
-    jr $ra
+# lw $s0, 0x10008000
+# li $t0, 0
+# render_loop:
+    # lw $t1, ($s0)        # Load byte from current grid
+    # # Render pixel/block based on the value of $t1
+    # # (This step depends on how you render each pixel/block)
+    # addi $s0, $s0, 1     # Increment current grid pointer
+    # addi $t0, $t0, 1     # Increment loop counter
+    # bne $t0, 16384, render_loop  # Repeat until entire grid is rendered
+    # jr $ra
  
  #UNDER CONSTRUCTION - SPEEDING FINES INCREASED
  
