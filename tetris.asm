@@ -14,15 +14,20 @@
 #QOL
 # 1. Refactor initialization code into individual blocks using jal and jr $ra for easier drawing 
 
-#Functions
-# 1. Add music (Korobeinki) (Hard)
-# 2. Add score, based on +100, +200, +400, +800 for each line clear of 1, 2, 3, 4 rows (Hard)
-#X 3. Full set of 7 tetrominoes, as below (Hard)
-#X 3a. Tetrominoes in different colours (Easy)
-# 4. Box showing next tetromino (Easy)
-# 5. Gravity feature, with each second moving tetromino down by 1 row (Easy)
-# 6. Gravity speed increase feature, increase speed by 1% per tetromino and 3% per clear (Easy)
-# 7. Pause screen using P (Easy)
+#Functions - 8 = 2x + y for x easy and y hard features. 
+    #Currently at 1 hard, 1 easy; total 3 (full set of tetrominoes in 7 colours)
+    #TODO: complete movemment, animation, collision/clearing row!
+# 1. Add music (Korobeinki) (Hard) - COMPLETELY UNKNOWN
+# 2. Add score, based on +100, +200, +400, +800 for each line clear of 1, 2, 3, 4 rows (Hard) (count number of erasures in a variable and add  a score via beq.)
+    #Actually implementing collisions would check for each row from the start if for each 1024 piexels, a full row of 128 (or whatever it was), or indeed every 16th, were neither black nor grey. Then clear to original
+    #The gravity of having the pieces fall would be more annoying to implement, as it would require each colour box to be saved and dropped 1024 pixels down individually. 
+    #Something like for each grey/black pixel (possibly taken from some prime backup of an empty playing field), look at the colour above and fill the current square thus, and then paint the one above
+    #with the opposite null colour. This process would run only 9 times like this, given the playing field. 
+# 4. Box showing next tetromino (Easy) (draw the next tetromino in a small box. this should be obvious, though would require some funnies be done with the random piece selector loop on the first move, as it would need 2 pieces)
+# 5. Gravity feature, with each second moving tetromino down by 1 row (Easy) (for each second, automatically go down 1 with the typical animation method - go back to backup background, add 1024 to origin, repaint, save)
+# 6. Gravity speed increase feature, increase speed by 1% per tetromino and 3% per clear (Easy) - each piece falls 1 row per gravity (variable); this is reduced by 1% with each piece (*=.99)
+# 7. Pause screen using P (Easy) - basic feature that introduces a sleeping loop when P is pressed and waits to jump back to main when P is pressed again
+# 8. Rotation through the use of W; set some constant factor by which every piece is painted and add  rotation value as necessary when repainting. 
 ##############################################################################
 
     .data
@@ -223,7 +228,7 @@ game_loop:
     li 		$v0, 32
 	li 		$a0, 1
 	syscall
-
+    
     lw $t0, ADDR_KBRD               # $t0 = base address for keyboard
     lw $t8, 0($t0)                  # Load first word from keyboard
     beq $t8, 1, keyboard_input      # If first word 1, key is pressed
@@ -232,6 +237,7 @@ game_loop:
 keyboard_input:                     # A key is pressed
     lw $a0, 4($t0)                  # Load second word from keyboard
     beq $a0, 0x71, quit     # Check if the key q was pressed
+    beq $a0, 0x64, down
     #keybindings: https://www.rapidtables.com/code/text/ascii-table.html
     #Important one:
     # W 77 (rotate)
@@ -247,9 +253,37 @@ keyboard_input:                     # A key is pressed
 
     b main
  
+#UNDER CONSTRUCTION - SAVE LOOP
+ 
+la $s0, ADDR_DSPL
+la $s1, background_grid_copy
+li $t0, 0
+copy_loop:
+    lb $t1, ($s0)        # Load byte from current grid
+    sb $t1, ($s1)        # Store byte to background grid copy
+    addi $s0, $s0, 1     # Increment current grid pointer
+    addi $s1, $s1, 1     # Increment background grid copy pointer
+    addi $t0, $t0, 1     # Increment loop counter
+    bne $t0, 16384, copy_loop  # Repeat until entire grid is copied
+    jr $ra
+    
+la $s0, ADDR_DSPL
+li $t0, 0
+render_loop:
+    lb $t1, ($s0)        # Load byte from current grid
+    # Render pixel/block based on the value of $t1
+    # (This step depends on how you render each pixel/block)
+    addi $s0, $s0, 1     # Increment current grid pointer
+    addi $t0, $t0, 1     # Increment loop counter
+    bne $t0, 16384, render_loop  # Repeat until entire grid is rendered
+    jr $ra
+ 
+ #UNDER CONSTRUCTION - SPEEDING FINES INCREASED
+ 
  square: 
     li $t1, 0xfaeb36
     addi $t0, $t0, 820
+    #820 centres this; do not interfere. 
     li $t2, 4 
     jal draw_square
     addi $t0, $t0, 16
@@ -397,6 +431,16 @@ fill:
 # input of the number of lines cleared calculated at calling function
 # 4 7-segment display rectangles displaying from 0000 to 9999 (if the stack-held value exceeds 9999, end screen)
 # draw the respective number for the score in the appropriate box using modulo operations (ABCD//1000 = A, print A and so on for all 4 vals)
+
+down:
+    #Load old background
+    #Amend y start point to be 16 less
+    #Draw the appropriate piece
+    #Check for collisions
+    #Save as backup background
+    #Jump back
+    
+    #A similar process is to be repeated for the rest. 
 
 quit:
     lw $t0, ADDR_DSPL
