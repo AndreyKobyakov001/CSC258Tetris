@@ -17,6 +17,9 @@
 #Functions - 8 = 2x + y for x easy and y hard features. 
     #Currently at 1 hard, 1 easy; total 3 (full set of tetrominoes in 7 colours)
     #TODO: complete movemment, animation, collision/clearing row!
+    #Collision: if for each 16th pixel, 9 times in a row, clear the row and have everything above drop, possibly recursively
+    #Animation: use LA or LW to load values of the bitmap into the backup, and then keep moving the piece down until it collides and cannot move; save this as the new backup
+    #Movement: as explained below, +/- 16, -1024 for D, S, A respectively. Each operates in accordance with animation skeleton above. 
 # 1. Add music (Korobeinki) (Hard) - COMPLETELY UNKNOWN
 # 2. Add score, based on +100, +200, +400, +800 for each line clear of 1, 2, 3, 4 rows (Hard) (count number of erasures in a variable and add  a score via beq.)
     #Actually implementing collisions would check for each row from the start if for each 1024 piexels, a full row of 128 (or whatever it was), or indeed every 16th, were neither black nor grey. Then clear to original
