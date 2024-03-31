@@ -208,7 +208,10 @@ main:
     #Final pixel: 16380 for 4096 total under a 64x64 display
     
 random:
-    # jal copy_loop
+    la $t0, ADDR_DSPL
+    la $a1, backup
+    li $t1, 0
+    jal copy_loop
     li $v0, 42
     li $a0, 0
     li $a1, 7
@@ -274,17 +277,26 @@ keyboard_input:                     # A key is pressed
  
 #UNDER CONSTRUCTION - SAVE LOOP
  
-# lw $s0, ADDR_DSPL
-# lw $s1, background_grid_copy
-# li $t0, 0
-# copy_loop:
-    # lw $t1, ($s0)        # Load byte from current grid
-    # sw $t1, ($s1)        # Store byte to background grid copy
+# la $t0, ADDR_DSPL
+# la $a1, backup
+# li $t1, 0
+copy_loop:
+    # Debugging feature.
+    # lw $t5, ADDR_DSPL
+    # addi $t5, $t5, 4
+    # li $t6, 0x0000ff
+    # sw $t6 0($t5)
+    # lb $t1, ($s0)        # Load byte from current grid
+    sb $t0, ($a1)        # Store byte to background grid copy
     # addi $s0, $s0, 1     # Increment current grid pointer
-    # addi $s1, $s1, 1     # Increment background grid copy pointer
-    # addi $t0, $t0, 1     # Increment loop counter
-    # bne $t0, 16384, copy_loop  # Repeat until entire grid is copied
-    # jr $ra
+    addi $a1, $a1, 1     # Increment background grid copy pointer
+    addi $t1, $t1, 1     # Increment loop counter
+    bne $t1, 16384, copy_loop  # Repeat until entire grid is copied
+    # lw $t5, ADDR_DSPL
+    # addi $t5, $t5, 8
+    # li $t6, 0x00ffff
+    # sw $t6 0($t5)
+    jr $ra
     
 # lw $s0, 0x10008000
 # li $t0, 0
