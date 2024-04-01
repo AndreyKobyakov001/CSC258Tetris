@@ -50,8 +50,9 @@ ADDR_KBRD:
 ##############################################################################
 backup:    .space  16384       # allocate space to copy over entire bitmap display
 current_piece_x:    .word   6               # x coordinate for current piece
-current_piece_y:    .word   6               # y coordinate for current piece\
-
+current_piece_y:    .word   6               # y coordinate for current piece
+curr_piece:         .word   6
+curr_orientation:   .word   6               #From 0 to 3 indicating orientation of piece as sub-branches in each draw function; 0 by default, reset to 0 in random selector. Useful for draw function. 
 ##############################################################################
 # Code
 ##############################################################################
@@ -70,11 +71,11 @@ current_piece_y:    .word   6               # y coordinate for current piece\
 
 	# Run the Tetris game. 
 	
-
+    #Initialization START
     lw $t0, ADDR_DSPL
     li $t1, 0xff0000
-    sw $t1 0($t0)
-    sw $t1 16380($t0) 
+    sw $t1, 0($t0)
+    sw $t1, 16380($t0) 
     add $t0, $t0, 768
     #144 pixels between them; 36 "blocks"
     #paint(t0), paint(144(t0))
@@ -192,9 +193,9 @@ score_board:
             addi $t4, $t4, -1  # Decrement loop counter
         addi $t0, $t0, 944
         bnez $t4, new_loop3 # Branch back to loop if $t2 != 0
-
-main:
+    #INITIALIZATION END
     
+main:
     #Starting pixel of gameboard: 772
     #140 pixels wide
     #15104 pixels long
@@ -206,6 +207,7 @@ main:
     #Final pixel: 16380 for 4096 total under a 64x64 display
     
 random:
+#If the area where it would spawn, which is 820 pixels, is not grey, game over; no new pieces can spawn, as the spawning position is occupied. TODO: add if check. 
     la $t0, ADDR_DSPL
     la $a1, backup
     li $t1, 0
@@ -223,7 +225,9 @@ random:
     beq $a0, 4, squiggle_1
     beq $a0, 5, squiggle_2
     beq $a0, 6, l_right
-    beq $a0, 7, l_left
+    beq $a0, 0, l_left
+ 
+
     
 
 # new_piece:
@@ -248,10 +252,7 @@ game_loop:
 	# 2b. Update locations (paddle, ball) - go back to the random selector
 	# 3. Draw the screen - based on previous value of $a0 as long as a collision doesn't happen
 	# 4. Sleep
-    la $t0, ADDR_DSPL
-    la $a1, backup
-    li $t1, 0
-    # jal render_loop
+    
     # li $t0, 0  
 #Method for animation
 # Save screen as it is as OLD
@@ -263,6 +264,16 @@ game_loop:
 # Repeat: if the piece can continue moving, go back to (2) and keep moving down
 # Using the 2 data bits of start_x and start_y to keep track of the current moving piece, and redrawing based on that instead of any register
     #5. Go back to 1
+    lw $t0, ADDR_DSPL
+    la $a1, backup
+    li $t1, 0
+    # lw $t5, ADDR_DSPL
+    # li $t6, 0x0ffff
+    # sw $t6 0($t5)
+    # sw $t6 16380($t5)
+    
+    jal render_loop
+    
     li 		$v0, 32
 	li 		$a0, 1
 	syscall
@@ -279,7 +290,7 @@ keyboard_input:                     # A key is pressed
     beq $a0, 0x77, rotate
     beq $a0, 0x61, left_shift
     beq $a0, 0x73, down_shift
-    beq $a0, 0x20, down
+    # beq $a0, 0x20, down
     
     #keybindings: https://www.rapidtables.com/code/text/ascii-table.html
     #Important one:
@@ -297,8 +308,13 @@ keyboard_input:                     # A key is pressed
     b main
  
 #UNDER CONSTRUCTION - SAVE LOOP
- 
-# la $t0, ADDR_DSPL
+  
+    # lw $t5, ADDR_DSPL
+    # li $t6, 0xff00ff
+    # sw $t6 0($t5)
+    # sw $t6 16380($t5)
+    
+# # la $t0, ADDR_DSPL
 # la $a1, backup
 # li $t1, 0
 copy_loop: 
@@ -307,14 +323,29 @@ copy_loop:
     addi $a1, $a1, 4     # Increment background grid copy pointer
     addi $t1, $t1, 4     # Increment loop counter
     bne $t1, 16384, copy_loop  # Repeat until entire grid is copied 
+    # j quit
     jr $ra
 
+    # la $t0, ADDR_DSPL
+    # la $a1, backup
+    # li $t1, 0
 render_loop:
-    #Reverse of copy loop
+    #Reverse of copy loop - for i in backup array, paint pixel x as word saved therein, i++, x++, continue.  
     #Iterate through all of backup array, initial pointer @ $a1 or whatever
     #Load WORD, lw, into $t3
     #Store word, sw, from t3 into t0 offset 0
-    #Augment t0, a1, by 4 each
+    #Augment t0, a1, by 4 each  
+    # lw $t5, ADDR_DSPL
+    # li $t6, 0x00ffff
+    # sw $t6 0($t5)
+    # sw $t6 16380($t5)
+    
+    sw $a1, 4($t0)        # Store byte to background grid copy
+    # addi $s0, $s0, 1     # Increment current grid pointer
+    addi $a1, $a1, 4     # Increment background grid copy pointer
+    addi $t1, $t1, 4     # Increment loop counter
+    bne $t1, 16384, copy_loop  # Repeat until entire grid is copied 
+    # j game_loop
  #UNDER CONSTRUCTION - SPEEDING FINES INCREASED
  
  square: 
@@ -333,6 +364,7 @@ render_loop:
     li $t2, 4 
     jal draw_square
     j game_loop
+    # j next
  line: 
     li $t1, 0x00ffff
     addi $t0, $t0, 820
@@ -348,6 +380,7 @@ render_loop:
     li $t2, 4 
     jal draw_square
     j game_loop
+    # j next
  t_block: 
     li $t1, 0x70369d
     addi $t0, $t0, 820
@@ -363,6 +396,7 @@ render_loop:
     li $t2, 4 
     jal draw_square
     j game_loop
+    # j next
  squiggle_1: 
     li $t1, 0xe81416
     addi $t0, $t0, 820
@@ -378,6 +412,7 @@ render_loop:
     li $t2, 4 
     jal draw_square
     j game_loop
+    # j next
  squiggle_2: 
     li $t1, 0x79c314
     addi $t0, $t0, 820
@@ -393,6 +428,7 @@ render_loop:
     li $t2, 4 
     jal draw_square
     j game_loop
+    # j next
  l_right: 
     li $t1, 0x0339f8
     addi $t0, $t0, 820
@@ -408,6 +444,7 @@ render_loop:
     li $t2, 4 
     jal draw_square
     j game_loop
+    # j next
  l_left: 
     li $t1, 0xffa500
     addi $t0, $t0, 820
@@ -423,7 +460,8 @@ render_loop:
     li $t2, 4 
     jal draw_square
     j game_loop
- 
+    # j next
+    
  draw_square:
     sw $t1, 0($t0) 
     sw $t1, 4($t0) 
@@ -490,12 +528,13 @@ down:
 # lw $t8, 0($t9)              # fetch the current y coordinate value
 # addi $t8, $t8, 1            # increment the y coordinate value (move it down) -- here by 1024. 
 # sw $t8, 0($t9)              # store the updated y coordinate of the piece
-
-    
     #A similar process is to be repeated for the rest. 
     lw $t0, ADDR_DSPL
-    li $t1, 0xffff00
-    jal fill
+    li $t1, 0x909090
+    # jal fill
+    # lw $t0, ADDR_DSPL
+    # addi $t0, $t0, 1024
+    # jal line
     j random
     # TODO: fix this mess to actually jump to the game_loop, once that works. 
     
