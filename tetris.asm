@@ -510,16 +510,22 @@ render_loop:
     j game_loop
     # j next
     
- draw_square:
-    sw $t1, 0($t0) 
-    sw $t1, 4($t0) 
-    sw $t1, 8($t0) 
-    sw $t1, 12($t0) 
-    add $t0, $t0, 256   # Increment $t0 by 32
-    addi $t2, $t2, -1  # Decrement loop counter
-    bnez $t2, draw_square # Branch back to loop if $t2 != 0
-    add $t0, $t0, -1024   # Increment $t0 by 32
-    jr $ra 
+draw_square:
+    li $t2, 4  # Initialize $t2 to 4
+    
+    # Loop to fill square
+    fill_loop:
+        sw $t1, 0($t0) 
+        sw $t1, 4($t0) 
+        sw $t1, 8($t0) 
+        sw $t1, 12($t0) 
+        add $t0, $t0, 256   # Increment $t0 by 32
+        addi $t2, $t2, -1   # Decrement loop counter
+        bnez $t2, fill_loop # Branch back to loop if $t2 != 0
+
+    add $t0, $t0, -1024   # Decrement $t0 by 256
+    jr $ra
+    
     
 fill: 
     add $t0, $t0, 916
