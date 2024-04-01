@@ -58,6 +58,46 @@ curr_orientation:   .word   6               #From 0 to 3 indicating orientation 
 ##############################################################################
 .text
 
+bottom_bit:
+    li $t1, 0xff00ff 
+    lw $t0, ADDR_DSPL
+    addi $t0, $t0, 11012 
+    li $t5, 5         # Set loop counter for outer_loo
+    outer_loopc:
+    li $t4, 9          # Reset loop counter for outer loop 
+        outer_loopb: 
+            li $v0, 42
+            li $a0, 0
+            li $a1, 2
+            syscall 
+            beq $a0, $zero, draw_bottom_bit 
+            add $t0, $t0, 16
+            addi $t4, $t4, -1
+            
+            bnez $t4, outer_loopb # Branch back to outer loop if $t4 != 0
+    # Decrement the outer loop counter
+    addi $t0, $t0, 880
+    addi $t5, $t5, -1
+    bnez $t5, outer_loopc # Branch back to outer loop if $t5 != 0
+    
+draw_bottom_bit:
+    li $t2, 4  # Initialize $t2 to 4
+    # Loop to fill square
+    fill_loop2:
+        sw $t1, 0($t0) 
+        sw $t1, 4($t0) 
+        sw $t1, 8($t0) 
+        sw $t1, 12($t0) 
+        add $t0, $t0, 256   # Increment $t0 by 32
+        addi $t2, $t2, -1   # Decrement loop counter
+        bnez $t2, fill_loop2 # Branch back to loop if $t2 != 0
+
+    add $t0, $t0, -1024   # Decrement $t0 by 256
+    # add $t0, $t0, 16
+    # addi $t4, $t4, -1
+    j outer_loopb
+    
+
 # Define the function
 PlayMusic:
     li $t9, 1  # Loop control variable
