@@ -57,6 +57,54 @@ curr_orientation:   .word   6               #From 0 to 3 indicating orientation 
 # Code
 ##############################################################################
 .text
+
+# Define the function
+PlayMusic:
+    li $t9, 1  # Loop control variable
+
+# Start of the infinite loop
+MusicLoop:
+    # Play notes
+    li $a0, 76
+    li $a1, 500  # half second
+    li $a3, 120
+    li $v0, 33
+    syscall                # Call service 33, playing music
+    li $a0, 74
+    li $a1, 500  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 71
+    li $a1, 250  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 72
+    li $a1, 250  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 74
+    li $a1, 500  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 71
+    li $a1, 250  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 72
+    li $a1, 250  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 74
+    li $a1, 500  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 72
+    li $a1, 250  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 71
+    li $a1, 250  # half second
+    syscall                # Call service 33, playing music
+    li $a0, 69
+    syscall                # Call service 33, playing music
+    # End of music loop
+    b MusicLoop
+
+    # End of function
+    jr $ra
+
 	#Colours:
 	# red: .word 0xe81416      #Squiggle1
 	# org: .word 0xffa500      #LeftL
