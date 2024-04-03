@@ -1,3 +1,5 @@
+
+
 ################ CSC258H1F Winter 2024 Assembly Final Project ##################
 # This file contains our implementation of Tetris.
 #
@@ -26,6 +28,7 @@ ADDR_KBRD:
 # Mutable Data
 ##############################################################################
 backup:    .space  16384       # allocate space to copy over entire bitmap display
+tetromino_dims: .align 4 .space  48       # allocate space to copy over entire bitmap display
 x_pos: .word 0  # Initialize x position to 0
 y_pos: .word 4  # Initialize y position to 4 (to leave some space from the top)
 ##############################################################################
@@ -46,10 +49,15 @@ y_pos: .word 4  # Initialize y position to 4 (to leave some space from the top)
 
 	# Run the Tetris game. 
 
-li $s0, 0 # x offset of current tetromino
+li $s0, 820 # x offset of current tetromino
 li $s1, 0 # y offset of current tetromino
-li $s7, 0 #Current orientation; 0, 1, 2, 3 for 0*, 90*, 180*, 270* rightward rotation respectively. 
-li $s2, 0
+la $s2, tetromino_dims
+li $s3, 0
+li $s4, 1
+li $s5, 2
+li $s6, 3
+li $s7, -1
+
 draw_scene:
     #Initialization START
     lw $t0, ADDR_DSPL
@@ -189,12 +197,11 @@ score_board:
         addi $t0, $t0, 944
         bnez $t4, new_loop3 # Branch back to loop if $t2 != 0
         
-    bne $s2, 0, draw_loop
+    jal copy_display
     #INITIALIZATION END
     
 draw_random_tetrominoe:
     #If the area where it would spawn, which is 820 pixels, is not grey, game over; no new pieces can spawn, as the spawning position is occupied.
-    add $s2, $s2, 1
     lw $t0, ADDR_DSPL
     li $v0, 42
     li $a0, 0
@@ -220,22 +227,37 @@ draw_random_tetrominoe:
         beq $t8, 1, keyboard_input      # If first word 1, key is pressed
         addi $t0, $t0, 0
         after_keyboard_input:
+        jal bottom_wall_collision
         addi $s1, $s1, 256     # y offset 256 * lines to drop down by
         bne $t0, 0x10008fff, MusicLoop
+        bottom_collision:
+        li $s0, 820
+        li $s1, 0
+        jal copy_display
+        j draw_random_tetrominoe
         
 game_loop:
     j game_loop
  
  square: 
     # tetromino heights
-    li $s3, 2
-    li $s4, 2
-    li $s5, -1
-    li $s6, -1
-    #Rotations: none
+    sw $s5, 0($s2)
+    sw $s5, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
     
     li $t1, 0xfaeb36
-    addi $t0, $t0, 820
+    #addi $t0, $t0, 820
     #820 centres this; do not interfere. 
     li $t2, 4 
     jal draw_square
@@ -252,17 +274,25 @@ game_loop:
     # j next
  line:
     # tetromino heights
-    li $s3, 1
-    li $s4, 1
-    li $s5, 1
-    li $s6, 1
-    #Rotations: 1 -1 -1 -1
-    # 1 1 1 1
-    # 1 -1 -1 -1
+    sw $s4, 0($s2)
+    sw $s4, 4($s2)
+    sw $s4, 8($s2)
+    sw $s4, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s7, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    addi $t9, $s6, 1
+    sw $t9, 32($s2)
+    sw $s7, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
     
     li $s3, 1 # tetromino is 1 square tall
     li $t1, 0x00ffff
-    addi $t0, $t0, 820
+    #addi $t0, $t0, 820
     li $t2, 4 
     jal draw_square
     addi $t0, $t0, 16
@@ -278,18 +308,23 @@ game_loop:
     # j next
  t_block:
      # tetromino heights
-    li $s3, 1
-    li $s4, 2
-    li $s5, 1
-    li $s6, -1
-    #Rotations
-    # 3 2 -1 -1
-    # 2 2 2 -1
-    # 2 3 -1 -1
+    sw $s4, 0($s2)
+    sw $s5, 4($s2)
+    sw $s4, 8($s2)
+    sw $s3, 12($s2)
+    sw $s3, 16($s2)
+    sw $s4, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s6, 32($s2)
+    sw $s5, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
     
     li $s3, 2 # tetromino is 2 squares tall
     li $t1, 0x70369d
-    addi $t0, $t0, 820
+    #addi $t0, $t0, 820
     li $t2, 4 
     jal draw_square
     addi $t0, $t0, 16
@@ -305,18 +340,26 @@ game_loop:
     # j next
  squiggle_1:
      # tetromino heights
-    li $s3, 2
-    li $s4, 3
-    li $s5, -1
-    li $s6, -1
-    #Rotations
-    # 2 2 2 -1 
-    # 2 3 -1 -1
-    # 2 2 2 -1
+    sw $s5, 0($s2)
+    sw $s6, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s4, 16($s2)
+    sw $s3, 20($s2)
+    sw $s3, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s4, 40($s2)
+    sw $s7, 44($s2)
+    
+    
     
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xe81416
-    addi $t0, $t0, 820
+    #addi $t0, $t0, 820
     li $t2, 4 
     jal draw_square
     addi $t0, $t0, 1008
@@ -332,17 +375,23 @@ game_loop:
     # j next
  squiggle_2:
      # tetromino heights
-    li $s3, 3
-    li $s4, 2
-    li $s5, -1
-    li $s6, -1
-    #Rotations
-    # 2 2 2 -1 
-    # 3 2 -1 -1
-    # 2 2 2 -1
+    sw $s6, 0($s2)
+    sw $s5, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s4, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s4, 32($s2)
+    sw $s5, 36($s2)
+    sw $s5, 40($s2)
+    sw $s7, 44($s2)
+    
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x79c314
-    addi $t0, $t0, 820
+    #addi $t0, $t0, 820
     li $t2, 4 
     jal draw_square
     addi $t0, $t0, 1024
@@ -358,18 +407,24 @@ game_loop:
     # j next
  l_right:
      # tetromino heights
-    li $s3, 1
-    li $s4, 3
-    li $s5, -1
-    li $s6, -1
-    #Rotations:
-    # 2 2 2 -1 
-    # 3 3 -1 -1
-    # 2 1 1 -1
+    sw $s6, 0($s2)
+    sw $s4, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s3, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s3, 36($s2)
+    sw $s3, 40($s2)
+    sw $s7, 44($s2)
     
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x0339f8
-    addi $t0, $t0, 820
+    #addi $t0, $t0, 820
     li $t2, 4 
     jal draw_square
     addi $t0, $t0, 16
@@ -385,18 +440,23 @@ game_loop:
     # j next
  l_left:
      # tetromino heights
-    li $s3, 3
-    li $s4, 1
-    li $s5, -1
-    li $s6, -1
-    #Rotations
-    # 1 1 2 -1
-    # 3 3 -1 -1
-    # 2 2 2 -1
+    sw $s4, 0($s2)
+    sw $s6, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    sw $s3, 16($s2)
+    sw $s4, 20($s2)
+    sw $s4, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s5, 40($s2)
+    sw $s7, 44($s2)
     
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xffa500
-    addi $t0, $t0, 820
+    #addi $t0, $t0, 820
     li $t2, 4 
     jal draw_square
     addi $t0, $t0, 16
@@ -490,49 +550,303 @@ right_shift:
     addi $s0, $s0, 4 # x offset, 4 * lines to shift by
     right_collision:
     j action_complete
-
-left_wall_collision:
-    lw $t0, ADDR_DSPL
-    li $t3, 0x222222
-    li $t4, 0
-    li $t5, 60
-    add $t0, $t0, 768
-    loop1:
-    lw $t1, 4($t0)      # Paint at $t0
-
-    bne $t1, $t3, second_check1
-    beq $t1, $t3, continue1
-    second_check1:
-    bne $t1, $t4, left_collision
-    continue1:
-    # Increment $t0 by 256 to move to the next block
-    addi $t0, $t0, 256
-    # Decrement loop counter
-    addi $t5, $t5, -1
-    bnez $t5, loop1
     
+bottom_wall_collision:
+    li $t5, 4
+    li $t6, 0x222222
+    li $t7, 0   
+    
+    lw $t9, 0($s2)
+    beqz $t9, square1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    li $t4, 1024
+    mul $t4, $t4, $t9
+    add $t3, $t3, $t4
+    loop0:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check0
+        beq $t8, $t6, continue0
+        second_check0:
+        bne $t8, $t7, bottom_collision
+        continue0:
+        addi $t3, $t3 4
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop0
+        
+    square1:
+    lw $t9, 4($s2)
+    beqz $t9, square2
+    
+    lw $t3, ADDR_DSPL
+    addi $t3, $t3, 16
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    li $t4, 1024
+    mul $t4, $t4, $t9
+    add $t3, $t3, $t4
+    li $t5, 4
+    loop1:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check1
+        beq $t8, $t6, continue1
+        second_check1:
+        bne $t8, $t7, bottom_collision
+        continue1:
+        addi $t3, $t3 4
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop1
+        
+    square2:
+    lw $t9, 8($s2)
+    beqz $t9, square3
+    
+    lw $t3, ADDR_DSPL
+    addi $t3, $t3, 32
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    li $t4, 1024
+    mul $t4, $t4, $t9
+    add $t3, $t3, $t4
+    li $t5, 4
+    loop2:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check2
+        beq $t8, $t6, continue2
+        second_check2:
+        bne $t8, $t7, bottom_collision
+        continue2:
+        addi $t3, $t3 4
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop2
+    
+    square3:
+    lw $t9, 12($s2)
+    beqz $t9, end1
+    
+    lw $t3, ADDR_DSPL
+    addi $t3, $t3, 48
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    li $t4, 1024
+    mul $t4, $t4, $t9
+    add $t3, $t3, $t4
+    li $t5, 4
+    loop3:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check3
+        beq $t8, $t6, continue3
+        second_check3:
+        bne $t8, $t7, bottom_collision
+        continue3:
+        addi $t3, $t3 4
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop3
+        
+    end1:
+    jr $ra
+        
+left_wall_collision:
+    li $t5, 4
+    li $t6, 0x222222
+    li $t7, 0   
+    
+    lw $t9, 32($s2)
+    addi $t9, $t9, 1
+    beqz $t9, square4
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    addi $t3, $t3, -4
+
+    loop4:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check4
+        beq $t8, $t6, continue4
+        second_check4:
+        bne $t8, $t7, left_collision
+        continue4:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop4
+        
+    square4:
+    li $t5, 4
+    lw $t9, 36($s2)
+    addi $t9, $t9, 1
+    beqz $t9, square5
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    addi $t3, $t3, -4
+    loop5:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check5
+        beq $t8, $t6, continue5
+        second_check5:
+        bne $t8, $t7, left_collision
+        continue5:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop5
+        
+    square5:
+    li $t5, 4
+    lw $t9, 40($s2)
+    addi $t9, $t9, 1
+    beqz $t9, square6
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    addi $t3, $t3, -4
+    loop6:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check6
+        beq $t8, $t6, continue6
+        second_check6:
+        bne $t8, $t7, left_collision
+        continue6:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop6
+    
+    square6:
+    li $t5, 4
+    lw $t9, 28($s2)
+    addi $t9, $t9, 1
+    beqz $t9, end2
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    addi $t3, $t3, -4
+    loop7:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check7
+        beq $t8, $t6, continue7
+        second_check7:
+        bne $t8, $t7, right_collision
+        continue7:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop7
+        
+    end2:
     jr $ra
 
 right_wall_collision:
-    lw $t0, ADDR_DSPL
-    li $t3, 0x222222
-    li $t4, 0
-    li $t5, 60
-    add $t0, $t0, 768
-    loop2:
-    lw $t1, 144($t0)      # Paint at $t0
-
-    bne $t1, $t3, second_check2
-    beq $t1, $t3, continue2
-    second_check2:
-    bne $t1, $t4, left_collision
-    continue2:
-    # Increment $t0 by 256 to move to the next block
-    addi $t0, $t0, 256
-    # Decrement loop counter
-    addi $t5, $t5, -1
-    bnez $t5, loop2
+    li $t5, 4
+    li $t6, 0x222222
+    li $t7, 0   
     
+    lw $t9, 32($s2)
+    addi $t9, $t9, 1
+    beqz $t9, square7
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    mult $t4, $t9, $t5
+    mult $t4, $t4, $t5
+    add $t3, $t3, $t4
+
+    loop8:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check8
+        beq $t8, $t6, continue8
+        second_check8:
+        bne $t8, $t7, right_collision
+        continue8:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop8
+        
+    square7:
+    li $t5, 4
+    lw $t9, 36($s2)
+    addi $t9, $t9, 1
+    beqz $t9, square8
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    addi $t3, $t3, 1024
+    mult $t4, $t9, $t5
+    mult $t4, $t4, $t5
+    add $t3, $t3, $t4
+    loop9:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check9
+        beq $t8, $t6, continue9
+        second_check9:
+        bne $t8, $t7, right_collision
+        continue9:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop9
+        
+    square8:
+    li $t5, 4
+    lw $t9, 40($s2)
+    addi $t9, $t9, 1
+    beqz $t9, square9
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    addi $t3, $t3, 2048
+    mult $t4, $t9, $t5
+    mult $t4, $t4, $t5
+    add $t3, $t3, $t4
+    loop10:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check10
+        beq $t8, $t6, continue10
+        second_check10:
+        bne $t8, $t7, right_collision
+        continue10:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop10
+    
+    square9:
+    li $t5, 4
+    lw $t9, 44($s2)
+    addi $t9, $t9, 1
+    beqz $t9, end3
+    addi $t9, $t9, -1
+    
+    lw $t3, ADDR_DSPL
+    add $t3, $t3, $s0
+    add $t3, $t3, $s1
+    addi $t3, $t3, 3072
+    mult $t4, $t9, $t5
+    mult $t4, $t4, $t5
+    add $t3, $t3, $t4
+    loop11:
+        lw $t8, 0($t3)
+        bne $t8, $t6, second_check11
+        beq $t8, $t6, continue11
+        second_check11:
+        bne $t8, $t7, right_collision
+        continue11:
+        addi $t3, $t3 256
+        addi $t5, $t5, -1   # Decrement loop counter
+        bnez $t5, loop11
+        
+    end3:
     jr $ra
 
 MusicLoop:
@@ -574,7 +888,35 @@ MusicLoop:
     syscall                # Call service 33, playing music
     addi $a0, $t0, 0
     # End of music loop
-    b draw_scene
-
-    # End of function
+    b render_display
+    
+copy_display:
+    lw $t0, ADDR_DSPL
+    addi $t1, $t0, 16384
+    la $a1, backup
+    
+    copy_loop:
+    lw $t3, 0($t0)
+    sw $t3, 0($a1)        # Store byte to background grid copy
+    addi $a1, $a1, 4     # Increment background grid copy pointer
+    addi $t0, $t0, 4     # Increment loop counter
+    
+    bne $t0, $t1, copy_loop  # Repeat until entire grid is copied 
+    # j quit
     jr $ra
+    
+render_display:
+    lw $t0, ADDR_DSPL 
+    addi $t1, $t0, 16384
+    la $a1, backup
+    
+    render_loop:
+    lw $t3, 0($a1)
+    sw $t3, 0($t0)        # Store byte to background grid copy
+    # addi $s0, $s0, 1     # Increment current grid pointer
+    addi $a1, $a1, 4     # Increment background grid copy pointer
+    addi $t0, $t0, 4     # Increment loop counter
+    
+    bne $t0, $t1, render_loop  # Repeat until entire grid is copied 
+    # j quit
+    b draw_loop
