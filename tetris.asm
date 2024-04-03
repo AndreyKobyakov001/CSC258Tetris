@@ -56,7 +56,6 @@ draw_scene:
     sw $t1, 0($t0)
     sw $t1, 16380($t0) 
     add $t0, $t0, 768
-    lw $s5, ADDR_DSPL
     #144 pixels between them; 36 "blocks"
     #paint(t0), paint(144(t0))
     #t0 add 256; continue 64 times
@@ -227,7 +226,12 @@ game_loop:
     j game_loop
  
  square: 
-    li $s3, 2 # tetromino is 2 squares tall
+    # tetromino heights
+    li $s3, 2
+    li $s4, 2
+    li $s5, -1
+    li $s6, -1
+    
     li $t1, 0xfaeb36
     addi $t0, $t0, 820
     #820 centres this; do not interfere. 
@@ -244,7 +248,13 @@ game_loop:
     jal draw_square
     j draw_exit
     # j next
- line: 
+ line:
+    # tetromino heights
+    li $s3, 1
+    li $s4, 1
+    li $s5, 1
+    li $s6, 1
+    
     li $s3, 1 # tetromino is 1 square tall
     li $t1, 0x00ffff
     addi $t0, $t0, 820
@@ -261,7 +271,13 @@ game_loop:
     jal draw_square
     j draw_exit
     # j next
- t_block: 
+ t_block:
+     # tetromino heights
+    li $s3, 1
+    li $s4, 2
+    li $s5, 1
+    li $s6, -1
+    
     li $s3, 2 # tetromino is 2 squares tall
     li $t1, 0x70369d
     addi $t0, $t0, 820
@@ -279,6 +295,12 @@ game_loop:
     j draw_exit
     # j next
  squiggle_1:
+     # tetromino heights
+    li $s3, 2
+    li $s4, 3
+    li $s5, -1
+    li $s6, -1
+    
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xe81416
     addi $t0, $t0, 820
@@ -296,6 +318,12 @@ game_loop:
     j draw_exit
     # j next
  squiggle_2:
+     # tetromino heights
+    li $s3, 3
+    li $s4, 2
+    li $s5, -1
+    li $s6, -1
+    
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x79c314
     addi $t0, $t0, 820
@@ -313,6 +341,12 @@ game_loop:
     j draw_exit
     # j next
  l_right:
+     # tetromino heights
+    li $s3, 1
+    li $s4, 3
+    li $s5, -1
+    li $s6, -1
+    
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x0339f8
     addi $t0, $t0, 820
@@ -330,6 +364,12 @@ game_loop:
     j draw_exit
     # j next
  l_left:
+     # tetromino heights
+    li $s3, 3
+    li $s4, 1
+    li $s5, -1
+    li $s6, -1
+    
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xffa500
     addi $t0, $t0, 820
