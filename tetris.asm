@@ -46,9 +46,9 @@ y_pos: .word 4  # Initialize y position to 4 (to leave some space from the top)
 
 	# Run the Tetris game. 
 
-addi $s0, $s0, 0 # x offset of current tetromino
-addi $s1, $s1, 0 # y offset of current tetromino
-addi $s2, $s2, 0
+li $s0, 0 # x offset of current tetromino
+li $s1, 0 # y offset of current tetromino
+li $s2, 0
 draw_scene:
     #Initialization START
     lw $t0, ADDR_DSPL
@@ -220,13 +220,14 @@ draw_random_tetrominoe:
         beq $t8, 1, keyboard_input      # If first word 1, key is pressed
         addi $t0, $t0, 0
         after_keyboard_input:
-        addi $s1, $s1, 512     # y offset 256 * lines to drop down by
+        addi $s1, $s1, 256     # y offset 256 * lines to drop down by
         bne $t0, 0x10008fff, MusicLoop
         
 game_loop:
     j game_loop
  
  square: 
+    li $s3, 2 # tetromino is 2 squares tall
     li $t1, 0xfaeb36
     addi $t0, $t0, 820
     #820 centres this; do not interfere. 
@@ -244,6 +245,7 @@ game_loop:
     j draw_exit
     # j next
  line: 
+    li $s3, 1 # tetromino is 1 square tall
     li $t1, 0x00ffff
     addi $t0, $t0, 820
     li $t2, 4 
@@ -260,6 +262,7 @@ game_loop:
     j draw_exit
     # j next
  t_block: 
+    li $s3, 2 # tetromino is 2 squares tall
     li $t1, 0x70369d
     addi $t0, $t0, 820
     li $t2, 4 
@@ -275,7 +278,8 @@ game_loop:
     jal draw_square
     j draw_exit
     # j next
- squiggle_1: 
+ squiggle_1:
+    li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xe81416
     addi $t0, $t0, 820
     li $t2, 4 
@@ -291,7 +295,8 @@ game_loop:
     jal draw_square
     j draw_exit
     # j next
- squiggle_2: 
+ squiggle_2:
+    li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x79c314
     addi $t0, $t0, 820
     li $t2, 4 
@@ -307,7 +312,8 @@ game_loop:
     jal draw_square
     j draw_exit
     # j next
- l_right: 
+ l_right:
+    li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x0339f8
     addi $t0, $t0, 820
     li $t2, 4 
@@ -323,7 +329,8 @@ game_loop:
     jal draw_square
     j draw_exit
     # j next
- l_left: 
+ l_left:
+    li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xffa500
     addi $t0, $t0, 820
     li $t2, 4 
@@ -409,12 +416,60 @@ quit:
 	syscall
 	
 left_shift:
+    jal left_wall_collision
     addi $s0, $s0, -4 # x offset, -4 * lines to shift by
+    left_collision:
     j action_complete
 	
 right_shift:
+    jal right_wall_collision
     addi $s0, $s0, 4 # x offset, 4 * lines to shift by
+    right_collision:
     j action_complete
+
+left_wall_collision:
+    lw $t0, ADDR_DSPL
+    li $t3, 0x222222
+    li $t4, 0
+    li $t5, 60
+    add $t0, $t0, 768
+    loop1:
+    lw $t1, 4($t0)      # Paint at $t0
+
+    bne $t1, $t3, second_check1
+    beq $t1, $t3, continue1
+    second_check1:
+    bne $t1, $t4, left_collision
+    continue1:
+    # Increment $t0 by 256 to move to the next block
+    addi $t0, $t0, 256
+    # Decrement loop counter
+    addi $t5, $t5, -1
+    bnez $t5, loop1
+    
+    jr $ra
+
+right_wall_collision:
+    lw $t0, ADDR_DSPL
+    li $t3, 0x222222
+    li $t4, 0
+    li $t5, 60
+    add $t0, $t0, 768
+    loop2:
+    lw $t1, 144($t0)      # Paint at $t0
+
+    bne $t1, $t3, second_check2
+    beq $t1, $t3, continue2
+    second_check2:
+    bne $t1, $t4, left_collision
+    continue2:
+    # Increment $t0 by 256 to move to the next block
+    addi $t0, $t0, 256
+    # Decrement loop counter
+    addi $t5, $t5, -1
+    bnez $t5, loop2
+    
+    jr $ra
 
 MusicLoop:
     # Play notes
