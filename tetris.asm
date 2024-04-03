@@ -48,6 +48,7 @@ y_pos: .word 4  # Initialize y position to 4 (to leave some space from the top)
 
 li $s0, 0 # x offset of current tetromino
 li $s1, 0 # y offset of current tetromino
+li $s7, 0 #Current orientation; 0, 1, 2, 3 for 0*, 90*, 180*, 270* rightward rotation respectively. 
 li $s2, 0
 draw_scene:
     #Initialization START
@@ -231,6 +232,7 @@ game_loop:
     li $s4, 2
     li $s5, -1
     li $s6, -1
+    #Rotations: none
     
     li $t1, 0xfaeb36
     addi $t0, $t0, 820
@@ -254,6 +256,9 @@ game_loop:
     li $s4, 1
     li $s5, 1
     li $s6, 1
+    #Rotations: 1 -1 -1 -1
+    # 1 1 1 1
+    # 1 -1 -1 -1
     
     li $s3, 1 # tetromino is 1 square tall
     li $t1, 0x00ffff
@@ -277,6 +282,10 @@ game_loop:
     li $s4, 2
     li $s5, 1
     li $s6, -1
+    #Rotations
+    # 3 2 -1 -1
+    # 2 2 2 -1
+    # 2 3 -1 -1
     
     li $s3, 2 # tetromino is 2 squares tall
     li $t1, 0x70369d
@@ -300,6 +309,10 @@ game_loop:
     li $s4, 3
     li $s5, -1
     li $s6, -1
+    #Rotations
+    # 2 2 2 -1 
+    # 2 3 -1 -1
+    # 2 2 2 -1
     
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xe81416
@@ -323,7 +336,10 @@ game_loop:
     li $s4, 2
     li $s5, -1
     li $s6, -1
-    
+    #Rotations
+    # 2 2 2 -1 
+    # 3 2 -1 -1
+    # 2 2 2 -1
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x79c314
     addi $t0, $t0, 820
@@ -346,6 +362,10 @@ game_loop:
     li $s4, 3
     li $s5, -1
     li $s6, -1
+    #Rotations:
+    # 2 2 2 -1 
+    # 3 3 -1 -1
+    # 2 1 1 -1
     
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0x0339f8
@@ -369,6 +389,10 @@ game_loop:
     li $s4, 1
     li $s5, -1
     li $s6, -1
+    #Rotations
+    # 1 1 2 -1
+    # 3 3 -1 -1
+    # 2 2 2 -1
     
     li $s3, 3 # tetromino is 3 squares tall
     li $t1, 0xffa500
