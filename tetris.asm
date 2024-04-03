@@ -676,7 +676,7 @@ left_wall_collision:
         
     square4:
     li $t5, 4
-    lw $t9, 36($s2)
+    lw $t9, 20($s2)
     addi $t9, $t9, 1
     beqz $t9, square5
     addi $t9, $t9, -1
@@ -698,7 +698,7 @@ left_wall_collision:
         
     square5:
     li $t5, 4
-    lw $t9, 40($s2)
+    lw $t9, 24($s2)
     addi $t9, $t9, 1
     beqz $t9, square6
     addi $t9, $t9, -1
@@ -847,6 +847,12 @@ right_wall_collision:
         bnez $t5, loop11
         
     end3:
+    jr $ra
+
+left_wall_collision:
+    jr $ra
+    
+right_wall_collision:
     jr $ra
 
 MusicLoop:
