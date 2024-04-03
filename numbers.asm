@@ -6,7 +6,7 @@ draw_zero:
     # addi $t0, $t0, 60
     addi $t0, $t0, 1452 #TOP HORIZONTAL
     jal draw_horizontal
-    addi $t0, $t0, 768 #BOTTOM HORIZONTAL
+    addi $t0, $t0, 1792 #BOTTOM HORIZONTAL
     jal draw_horizontal 
     
     addi $t0, $t0, -1792 #LEFT TOP VERT
@@ -17,13 +17,16 @@ draw_zero:
     jal draw_vertical
     addi $t0, $t0, 12 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
 
 draw_one: 
     lw $t0, ADDR_DSPL
+    addi $t0, $t0, 1452 #TOP HORIZONTAL
     addi $t0, $t0, 12 #RIGHT TOP VERT
     jal draw_vertical
-    addi $t0, $t0, 12 #RIGHT BOTTOM VERT
+    addi $t0, $t0, 1024 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
 
 draw_two: 
     lw $t0, ADDR_DSPL 
@@ -35,10 +38,11 @@ draw_two:
     jal draw_horizontal 
     addi $t0, $t0, 768 #BOTTOM HORIZONTAL
     jal draw_horizontal 
-    addi $t0, $t0, 12 #RIGHT TOP VERT
+    addi $t0, $t0, -1780 #RIGHT TOP VERT
     jal draw_vertical
     addi $t0, $t0, 1012 #LEFT BOTTOM VERT
     jal draw_vertical
+    jr $ra
 
 draw_three: 
     lw $t0, ADDR_DSPL
@@ -51,27 +55,29 @@ draw_three:
     addi $t0, $t0, 768 #MID HORIZONTAL
     jal draw_horizontal 
     addi $t0, $t0, 256 #MID HORIZONTAL
-    jal draw_horizontal 
-    
+    jal draw_horizontal
     addi $t0, $t0, 768 #BOTTOM HORIZONTAL
     jal draw_horizontal  
-    addi $t0, $t0, 12 #RIGHT TOP VERT
+    addi $t0, $t0, -1524 #RIGHT TOP VERT
     jal draw_vertical 
-    addi $t0, $t0, 12 #RIGHT BOTTOM VERT
+    addi $t0, $t0, 768 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
 
 draw_four: 
     lw $t0, ADDR_DSPL 
+     addi $t0, $t0, 1452 #TOP HORIZONTAL
     addi $t0, $t0, 768 #MID HORIZONTAL
     jal draw_horizontal 
     addi $t0, $t0, 256 #MID HORIZONTAL
     jal draw_horizontal  
-    addi $t0, $t0, -1792 #LEFT TOP VERT
+    addi $t0, $t0, -1024 #LEFT TOP VERT
     jal draw_vertical
     addi $t0, $t0, 12 #RIGHT TOP VERT
     jal draw_vertical 
-    addi $t0, $t0, 12 #RIGHT BOTTOM VERT
+    addi $t0, $t0, 1024 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
 
 draw_five: 
     lw $t0, ADDR_DSPL
@@ -91,8 +97,9 @@ draw_five:
     
     addi $t0, $t0, -1792 #LEFT TOP VERT
     jal draw_vertical 
-    addi $t0, $t0, 12 #RIGHT BOTTOM VERT
+    addi $t0, $t0, 1036 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
 
 draw_six: 
     lw $t0, ADDR_DSPL
@@ -112,10 +119,11 @@ draw_six:
     
     addi $t0, $t0, -1792 #LEFT TOP VERT
     jal draw_vertical 
-    addi $t0, $t0, 1012 #LEFT BOTTOM VERT
+    addi $t0, $t0, 1024 #LEFT BOTTOM VERT
     jal draw_vertical
     addi $t0, $t0, 12 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
 
 draw_seven: 
     lw $t0, ADDR_DSPL
@@ -126,8 +134,9 @@ draw_seven:
     jal draw_horizontal
     addi $t0, $t0, 12 #RIGHT TOP VERT
     jal draw_vertical
-    addi $t0, $t0, 12 #RIGHT BOTTOM VERT
+    addi $t0, $t0, 1024 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
 
 draw_eight: 
     lw $t0, ADDR_DSPL
@@ -153,6 +162,7 @@ draw_eight:
     jal draw_vertical
     addi $t0, $t0, 12 #RIGHT BOTTOM VERT
     jal draw_vertical 
+    jr $ra
     
 draw_nine: 
     lw $t0, ADDR_DSPL
@@ -174,10 +184,10 @@ draw_nine:
     jal draw_vertical
     addi $t0, $t0, 12 #RIGHT TOP VERT
     jal draw_vertical 
-    addi $t0, $t0, 12 #RIGHT BOTTOM VERT
+    addi $t0, $t0, 1024 #RIGHT BOTTOM VERT
     jal draw_vertical 
-
-
+    jr $ra
+    
 
 
 draw_horizontal:
