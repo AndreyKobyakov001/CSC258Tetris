@@ -1,5 +1,3 @@
-
-
 ################ CSC258H1F Winter 2024 Assembly Final Project ##################
 # This file contains our implementation of Tetris.
 #
@@ -60,7 +58,6 @@ li $s7, -1
 
 draw_scene:
     #Initialization START
-    sw $s3, 48($s2)
     lw $t0, ADDR_DSPL
     li $t1, 0xff0000
     sw $t1, 0($t0)
