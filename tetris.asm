@@ -28,7 +28,7 @@ ADDR_KBRD:
 # Mutable Data
 ##############################################################################
 backup:    .space  16384       # allocate space to copy over entire bitmap display
-tetromino_dims: .align 4 .space  56       # allocate space to copy over entire bitmap display
+tetromino_dims: .align 4 .space  60       # allocate space to copy over entire bitmap display
 x_pos: .word 0  # Initialize x position to 0
 y_pos: .word 4  # Initialize y position to 4 (to leave some space from the top)
 ##############################################################################
@@ -60,6 +60,7 @@ li $s7, -1
 
 draw_scene:
     #Initialization START
+    sw $s3, 48($s2)
     lw $t0, ADDR_DSPL
     li $t1, 0xff0000
     sw $t1, 0($t0)
@@ -202,6 +203,7 @@ score_board:
     
 draw_random_tetrominoe:
     #If the area where it would spawn, which is 820 pixels, is not grey, game over; no new pieces can spawn, as the spawning position is occupied.
+    sw $s3, 56($s2)
     lw $t0, ADDR_DSPL
     li $v0, 42
     li $a0, 0
@@ -209,7 +211,7 @@ draw_random_tetrominoe:
     syscall
     #for each s press, add 1024 to $t0
     #for each a/s press, -/+ 16 to $t0, respectively
-    draw_loop:
+    draw_loop:       
         lw $t0, ADDR_DSPL
         add $t0, $t0, $s1
         add $t0, $t0, $s0
@@ -222,269 +224,22 @@ draw_random_tetrominoe:
         beq $a0, 6, l_right
         beq $a0, 0, l_left
         draw_exit:
+        jal bottom_wall_collision
         lw $t1, ADDR_KBRD               # $t0 = base address for keyboard
         lw $t8, 0($t1)                  # Load first word from keyboard
-        beq $t8, 1, keyboard_input      # If first word 1, key is pressed
+        beq $t8, 1, keyboard_input      # If first word 1, key is pressedww
         addi $t0, $t0, 0
         after_keyboard_input:
-        jal bottom_wall_collision
-        sw $s3, 48($s2)
-        sw $s3, 52($s2)
         addi $s1, $s1, 256     # y offset 256 * lines to drop down by
-        bne $t0, 0x10008fff, MusicLoop
-        bottom_collision:
-        sw $s3, 48($s2)
         sw $s3, 52($s2)
+        j MusicLoop
+        bottom_collision:
+        jal is_game_over
         li $s0, 820
         li $s1, 0
         jal copy_display
-        j draw_random_tetrominoe
-        
-game_loop:
-    j game_loop
- 
- square: 
-    # tetromino heights
-    sw $s5, 0($s2)
-    sw $s5, 4($s2)
-    sw $s3, 8($s2)
-    sw $s3, 12($s2)
-    
-    sw $s3, 16($s2)
-    sw $s3, 20($s2)
-    sw $s7, 24($s2)
-    sw $s7, 28($s2)
-    
-    sw $s5, 32($s2)
-    sw $s5, 36($s2)
-    sw $s7, 40($s2)
-    sw $s7, 44($s2)
-    
-    li $t1, 0xfaeb36
-    #addi $t0, $t0, 820
-    #820 centres this; do not interfere. 
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1008
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    j draw_exit
-    # j next
- line:
-    # tetromino heights
-    sw $s4, 0($s2)
-    sw $s4, 4($s2)
-    sw $s4, 8($s2)
-    sw $s4, 12($s2)
-    
-    sw $s3, 16($s2)
-    sw $s7, 20($s2)
-    sw $s7, 24($s2)
-    sw $s7, 28($s2)
-    
-    addi $t9, $s6, 1
-    sw $t9, 32($s2)
-    sw $s7, 36($s2)
-    sw $s7, 40($s2)
-    sw $s7, 44($s2)
-    
-    li $t1, 0x00ffff
-    #addi $t0, $t0, 820
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    j draw_exit
-    # j next
- t_block:
-     # tetromino heights
-    sw $s4, 0($s2)
-    sw $s5, 4($s2)
-    sw $s4, 8($s2)
-    sw $s3, 12($s2)
-    
-    sw $s3, 16($s2)
-    sw $s4, 20($s2)
-    sw $s7, 24($s2)
-    sw $s7, 28($s2)
-    
-    sw $s6, 32($s2)
-    sw $s5, 36($s2)
-    sw $s7, 40($s2)
-    sw $s7, 44($s2)
-    
-    li $t1, 0x70369d
-    #addi $t0, $t0, 820
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1008
-    li $t2, 4 
-    jal draw_square
-    j draw_exit
-    # j next
- squiggle_1:
-     # tetromino heights
-    sw $s6, 0($s2)
-    sw $s5, 4($s2)
-    sw $s3, 8($s2)
-    sw $s3, 12($s2)
-    
-    sw $s4, 16($s2)
-    sw $s3, 20($s2)
-    sw $s3, 24($s2)
-    sw $s7, 28($s2)
-    
-    sw $s5, 32($s2)
-    sw $s5, 36($s2)
-    sw $s4, 40($s2)
-    sw $s7, 44($s2)
-    
-    li $t1, 0xe81416
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1008
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1008
-    li $t2, 4 
-    jal draw_square
-    j draw_exit
-    # j next
- squiggle_2:
-     # tetromino heights
-    sw $s5, 0($s2)
-    sw $s6, 4($s2)
-    sw $s3, 8($s2)
-    sw $s3, 12($s2)
-    
-    sw $s3, 16($s2)
-    sw $s3, 20($s2)
-    sw $s4, 24($s2)
-    sw $s7, 28($s2)
-    
-    sw $s4, 32($s2)
-    sw $s5, 36($s2)
-    sw $s5, 40($s2)
-    sw $s7, 44($s2)
-    
-    li $t1, 0x79c314
-    #addi $t0, $t0, 820
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1024
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1024
-    li $t2, 4 
-    jal draw_square
-    j draw_exit
-    # j next
- l_right:
-     # tetromino heights
-    sw $s6, 0($s2)
-    sw $s4, 4($s2)
-    sw $s3, 8($s2)
-    sw $s3, 12($s2)
-    
-    sw $s3, 16($s2)
-    sw $s3, 20($s2)
-    sw $s3, 24($s2)
-    sw $s7, 28($s2)
-    
-    sw $s5, 32($s2)
-    sw $s3, 36($s2)
-    sw $s3, 40($s2)
-    sw $s7, 44($s2)
-    
-    li $t1, 0x0339f8
-    #addi $t0, $t0, 820
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1008
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1024
-    li $t2, 4 
-    jal draw_square
-    j draw_exit
-    # j next
- l_left:
-     # tetromino heights
-    sw $s4, 0($s2)
-    sw $s6, 4($s2)
-    sw $s3, 8($s2)
-    sw $s3, 12($s2)
-    sw $s3, 16($s2)
-    sw $s4, 20($s2)
-    sw $s4, 24($s2)
-    sw $s7, 28($s2)
-    
-    sw $s5, 32($s2)
-    sw $s5, 36($s2)
-    sw $s5, 40($s2)
-    sw $s7, 44($s2)
-    
-    li $t1, 0xffa500
-    #addi $t0, $t0, 820
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 16
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1024
-    li $t2, 4 
-    jal draw_square
-    addi $t0, $t0, 1024
-    li $t2, 4 
-    jal draw_square
-    j draw_exit
-    # j next
-    
-draw_square:
-    li $t2, 4  # Initialize $t2 to 4
-    
-    # Loop to fill square
-    fill_loop:
-        sw $t1, 0($t0) 
-        sw $t1, 4($t0) 
-        sw $t1, 8($t0) 
-        sw $t1, 12($t0) 
-        add $t0, $t0, 256   # Increment $t0 by 32
-        addi $t2, $t2, -1   # Decrement loop counter
-        bnez $t2, fill_loop # Branch back to loop if $t2 != 0
-
-    add $t0, $t0, -1024   # Decrement $t0 by 256
-    jr $ra
-    
+        sw $s4, 52($s2)
+        j MusicLoop
     
 fill: 
     add $t0, $t0, 916
@@ -506,12 +261,35 @@ fill:
     bnez $t4, outer_end
     jr $ra
     
+game_over:
+    j game_over
+    
+is_game_over:
+    lw $t8, ADDR_DSPL
+    addi $t8, $t8, 772
+    li $t2, 36        # Set loop counter to 5 for the inner loop
+    li $t6, 0x222222
+    li $t7, 0 
+
+    game_over_loop: 
+        lw $t9, 0($t8)
+        bne $t9, $t6, gm_second_check
+        beq $t9, $t6, gm_continue
+        gm_second_check:
+        bne $t9, $t7, game_over
+        gm_continue:
+        addi $t8, $t8, 4   # Increment $t0 by 32
+        addi $t2, $t2, -1  # Decrement loop counter
+        bnez $t2, game_over_loop # Branch back to loop if $t2 != 0
+    
+    jr $ra
+    
 keyboard_input:                     # A key is pressed
     addi $t2, $a0, 0
     lw $a0, 4($t1)                  # Load second word from keyboard
     beq $a0, 0x71, quit     # Check if the key q was pressed
     beq $a0, 0x64, right_shift
-    #beq $a0, 0x77, rotate
+    beq $a0, 0x77, rotate
     beq $a0, 0x61, left_shift
     #beq $a0, 0x73, down_shift
     
@@ -536,19 +314,21 @@ quit:
 	li $v0, 10                      # Quit gracefully
 	syscall
 	
+rotate:
+    lw $t9, 56($s2)
+    addi $t9, $t9, 1
+    sw $t9, 56($s2)
+    j action_complete
+	
 left_shift:
     jal left_wall_collision
     addi $s0, $s0, -4 # x offset, -4 * lines to shift by
-    sw $s4, 48($s2)
-    sw $s3, 52($s2)
     left_collision:
     j action_complete
 	
 right_shift:
     jal right_wall_collision
     addi $s0, $s0, 4 # x offset, 4 * lines to shift by
-    sw $s3, 48($s2)
-    sw $s4, 52($s2)
     right_collision:
     j action_complete
     
@@ -564,21 +344,11 @@ bottom_wall_collision:
     add $t3, $t3, $s0
     add $t3, $t3, $s1
     
-    lw $t4, 48($s2)
-    beqz $t4, check_right1
-    add $t3, $t3, 4
-    check_right1:
-    lw $t4, 52($s2)
-    beqz $t4, no_shift1
-    add $t3, $t3, -4
-    no_shift1:
-    
     li $t4, 1024
     mul $t4, $t4, $t9
     add $t3, $t3, $t4
     loop0:
         lw $t8, 0($t3)
-        #sw $t4, 0($t3)
         bne $t8, $t6, second_check0
         beq $t8, $t6, continue0
         second_check0:
@@ -596,15 +366,6 @@ bottom_wall_collision:
     addi $t3, $t3, 16
     add $t3, $t3, $s0
     add $t3, $t3, $s1
-    
-    lw $t4, 48($s2)
-    beqz $t4, check_right2
-    add $t3, $t3, 4
-    check_right2:
-    lw $t4, 52($s2)
-    beqz $t4, no_shift2
-    add $t3, $t3, -4
-    no_shift2:
     
     li $t4, 1024
     mul $t4, $t4, $t9
@@ -631,15 +392,6 @@ bottom_wall_collision:
     add $t3, $t3, $s0
     add $t3, $t3, $s1
     
-    lw $t4, 48($s2)
-    beqz $t4, check_right3
-    add $t3, $t3, 4
-    check_right3:
-    lw $t4, 52($s2)
-    beqz $t4, no_shift3
-    add $t3, $t3, -4
-    no_shift3:
-    
     li $t4, 1024
     mul $t4, $t4, $t9
     add $t3, $t3, $t4
@@ -664,15 +416,6 @@ bottom_wall_collision:
     addi $t3, $t3, 48
     add $t3, $t3, $s0
     add $t3, $t3, $s1
-    
-    lw $t4, 48($s2)
-    beqz $t4, check_right4
-    add $t3, $t3, 4
-    check_right4:
-    lw $t4, 52($s2)
-    beqz $t4, no_shift4
-    add $t3, $t3, -4
-    no_shift4:
     
     li $t4, 1024
     mul $t4, $t4, $t9
@@ -936,4 +679,756 @@ render_display:
     
     bne $t0, $t1, render_loop  # Repeat until entire grid is copied 
     # j quit
-    b draw_loop
+    lw $t9, 52($s2)
+    beqz $t9, draw_loop
+    j draw_random_tetrominoe
+    
+ square: 
+    # tetromino heights
+    sw $s5, 0($s2)
+    sw $s5, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    
+    li $t1, 0xfaeb36
+    #addi $t0, $t0, 820
+    #820 centres this; do not interfere. 
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+ line:
+    #2 rotations.
+    addi $t9, $s6, 1
+    lw $t8, 56($s2)
+    div $t8, $t9
+    mfhi $t8
+    
+    beq $t8, 0, line0
+    beq $t8, 2, line0
+    beq $t8, 1, line90
+    beq $t8, 3, line90
+    j draw_exit
+    # j next
+    
+line0:
+    # tetromino heights
+    sw $s4, 0($s2)
+    sw $s4, 4($s2)
+    sw $s4, 8($s2)
+    sw $s4, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s7, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    addi $t9, $s6, 1
+    sw $t9, 32($s2)
+    sw $s7, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations: 1 -1 -1 -1
+    # 1 1 1 1
+    # 1 -1 -1 -1
+
+    li $t1, 0x00ffff
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+
+line90:
+    # tetromino heights
+    addi $t9, $s6, 1
+    sw $t9, 0($s2)
+    sw $s3, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s3, 24($s2)
+    sw $s3, 28($s2)
+    
+    sw $s4, 32($s2)
+    sw $s4, 36($s2)
+    sw $s4, 40($s2)
+    sw $s4, 44($s2)
+    #Rotations: 1 -1 -1 -1
+    # 1 1 1 1
+    # 1 -1 -1 -1
+
+    li $t1, 0x00ffff
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+    
+ t_block:
+    addi $t9, $s6, 1
+    lw $t8, 56($s2)
+    div $t8, $t9
+    mfhi $t8
+    
+    beq $t8, 0, t_block0
+    beq $t8, 1, t_block90
+    beq $t8, 2, t_block180
+    beq $t8, 3, t_block270
+    j draw_exit
+    # j next
+    
+ t_block0:
+ # tetromino heights
+    sw $s4, 0($s2)
+    sw $s5, 4($s2)
+    sw $s4, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s4, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s6, 32($s2)
+    sw $s5, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 3 2 -1 -1
+    # 2 2 2 -1
+    # 2 3 -1 -1
+
+    li $t1, 0x70369d
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+    
+t_block90:
+ # tetromino heights
+    sw $s6, 0($s2)
+    sw $s5, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s3, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s4, 32($s2)
+    sw $s5, 36($s2)
+    sw $s4, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 3 2 -1 -1
+    # 2 2 2 -1
+    # 2 3 -1 -1
+
+    li $t1, 0x70369d
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+    
+t_block180:
+ # tetromino heights
+    sw $s5, 0($s2)
+    sw $s5, 4($s2)
+    sw $s5, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s4, 16($s2)
+    sw $s3, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s6, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 3 2 -1 -1
+    # 2 2 2 -1
+    # 2 3 -1 -1
+
+    li $t1, 0x70369d
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+    
+t_block270:
+ # tetromino heights
+    sw $s5, 0($s2)
+    sw $s6, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s4, 16($s2)
+    sw $s3, 20($s2)
+    sw $s4, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s5, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 3 2 -1 -1
+    # 2 2 2 -1
+    # 2 3 -1 -1
+
+    li $t1, 0x70369d
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+    
+ squiggle_1:
+    addi $t9, $s6, 1
+    lw $t8, 56($s2)
+    div $t8, $t9
+    mfhi $t8
+    
+    beq $t8, 0, squiggle_10
+    beq $t8, 2, squiggle_10
+    beq $t8, 1, squiggle_190
+    beq $t8, 3, squiggle_190
+    j draw_exit 
+    
+squiggle_10:
+    sw $s6, 0($s2)
+    sw $s5, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s4, 16($s2)
+    sw $s3, 20($s2)
+    sw $s3, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s4, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 2 2 2 -1 
+    # 2 3 -1 -1
+    # 2 2 2 -1
+
+    li $t1, 0xe81416
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+squiggle_190:
+    sw $s4, 0($s2)
+    sw $s5, 4($s2)
+    sw $s5, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s4, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s6, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 2 2 2 -1 
+    # 2 3 -1 -1
+    # 2 2 2 -1
+    li $t1, 0xe81416
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 976
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    
+ squiggle_2:
+    addi $t9, $s6, 1
+    lw $t8, 56($s2)
+    div $t8, $t9
+    mfhi $t8
+    
+    beq $t8, 0, squiggle_20
+    beq $t8, 2, squiggle_20
+    beq $t8, 1, squiggle_290
+    beq $t8, 3, squiggle_290 
+    j draw_exit 
+    
+squiggle_20:
+     # tetromino heights
+    sw $s5, 0($s2)
+    sw $s6, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s4, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s4, 32($s2)
+    sw $s5, 36($s2)
+    sw $s5, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 2 2 2 -1 
+    # 3 2 -1 -1
+    # 2 2 2 -1
+    li $t1, 0x79c314
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+
+ squiggle_290:
+     # tetromino heights
+    sw $s5, 0($s2)
+    sw $s5, 4($s2)
+    sw $s4, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s4, 16($s2)
+    sw $s3, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s6, 32($s2)
+    sw $s5, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 2 2 2 -1 
+    # 3 2 -1 -1
+    # 2 2 2 -1
+    li $t1, 0x79c314
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+    
+ l_right:
+    addi $t9, $s6, 1
+    lw $t8, 56($s2)
+    div $t8, $t9
+    mfhi $t8
+    
+    beq $t8, 0, l_right0
+    beq $t8, 1, l_right90
+    beq $t8, 2, l_right180
+    beq $t8, 3, l_right270
+    j draw_exit
+    
+ l_right0:
+    sw $s6, 0($s2)
+    sw $s4, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s3, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s3, 36($s2)
+    sw $s3, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 1 1 2 -1
+    # 3 3 -1 -1
+    # 2 2 2 -1
+
+    li $t1, 0xffa500
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+l_right90:    
+    sw $s4, 0($s2)
+    sw $s4, 4($s2)
+    sw $s5, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s5, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s6, 32($s2)
+    sw $s6, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 1 1 2 -1
+    # 3 3 -1 -1
+    # 2 2 2 -1
+
+    li $t1, 0xffa500
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+l_right180:
+    sw $s6, 0($s2)
+    sw $s6, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s4, 16($s2)
+    sw $s4, 20($s2)
+    sw $s3, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s5, 40($s2)
+    sw $s3, 44($s2)
+    #Rotations
+    # 1 1 2 -1
+    # 3 3 -1 -1
+    # 2 2 2 -1
+
+    li $t1, 0xffa500
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1008
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+l_right270:
+    sw $s5, 0($s2)
+    sw $s5, 4($s2)
+    sw $s5, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s4, 32($s2)
+    sw $s6, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations
+    # 1 1 2 -1
+    # 3 3 -1 -1
+    # 2 2 2 -1
+
+    li $t1, 0xffa500
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit 
+    
+ l_left:
+    addi $t9, $s6, 1
+    lw $t8, 56($s2)
+    div $t8, $t9
+    mfhi $t8
+      
+    beq $t8, 0, l_left0
+    beq $t8, 1, l_left90
+    beq $t8, 2, l_left180
+    beq $t8, 3, l_left270
+    j draw_exit
+    
+ l_left0:
+     # tetromino heights
+    sw $s4, 0($s2)
+    sw $s6, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s4, 20($s2)
+    sw $s4, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s5, 32($s2)
+    sw $s5, 36($s2)
+    sw $s5, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations:
+    # 2 2 2 -1 
+    # 3 3 -1 -1
+    # 2 1 1 -1
+    
+    li $t1, 0x0339f8
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    j draw_exit 
+l_left90:
+     # tetromino heights
+    sw $s5, 0($s2)
+    sw $s5, 4($s2)
+    sw $s5, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s5, 16($s2)
+    sw $s3, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s6, 32($s2)
+    sw $s6, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations:
+    # 2 2 2 -1 
+    # 3 3 -1 -1
+    # 2 1 1 -1
+
+    li $t1, 0x0339f8
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 976
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+l_left180:
+     # tetromino heights
+    sw $s6, 0($s2)
+    sw $s6, 4($s2)
+    sw $s3, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s3, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s4, 32($s2)
+    sw $s4, 36($s2)
+    sw $s5, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations:
+    # 2 2 2 -1 
+    # 3 3 -1 -1
+    # 2 1 1 -1
+
+    li $t1, 0x0339f8
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 1024
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+l_left270:
+     # tetromino heights
+    sw $s5, 0($s2)
+    sw $s4, 4($s2)
+    sw $s4, 8($s2)
+    sw $s3, 12($s2)
+    
+    sw $s3, 16($s2)
+    sw $s3, 20($s2)
+    sw $s7, 24($s2)
+    sw $s7, 28($s2)
+    
+    sw $s6, 32($s2)
+    sw $s4, 36($s2)
+    sw $s7, 40($s2)
+    sw $s7, 44($s2)
+    #Rotations:
+    # 2 2 2 -1 
+    # 3 3 -1 -1
+    # 2 1 1 -1
+
+    li $t1, 0x0339f8
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 16
+    li $t2, 4 
+    jal draw_square
+    addi $t0, $t0, 976
+    li $t2, 4 
+    jal draw_square
+    j draw_exit
+    # j next
+    
+draw_square:
+    li $t2, 4  # Initialize $t2 to 4
+    
+    # Loop to fill square
+    fill_loop:
+        sw $t1, 0($t0) 
+        sw $t1, 4($t0) 
+        sw $t1, 8($t0) 
+        sw $t1, 12($t0) 
+        add $t0, $t0, 256   # Increment $t0 by 32
+        addi $t2, $t2, -1   # Decrement loop counter
+        bnez $t2, fill_loop # Branch back to loop if $t2 != 0
+
+    add $t0, $t0, -1024   # Decrement $t0 by 256
+    jr $ra
